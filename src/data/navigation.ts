@@ -42,7 +42,9 @@ export const MODULE_NAVIGATION: Record<string, SidebarItem[]> = {
             label: 'Budget Estimation',
             icon: 'PieChart',
             subItems: [
-                { id: 'budget-estimation-ddo', label: 'DDO Estimation', icon: 'Users', path: '/budget-estimation/ddo-creator' },
+                { id: 'budget-estimation-ddo', label: 'DDO Creator', icon: 'Users', path: '/budget-estimation/ddo-creator' },
+                { id: 'budget-estimation-ddo-verifier', label: 'DDO Verifier', icon: 'FileCheck', path: '/budget-estimation/ddo-verifier' },
+                { id: 'budget-estimation-ddo-approver', label: 'DDO Approver', icon: 'CheckCircle', path: '/budget-estimation/ddo-approver' },
                 { id: 'budget-estimation-bco', label: 'BCO Compilation', icon: 'Briefcase', path: '/budget-estimation/bco-creator' },
                 { id: 'be-reports', label: 'Budget Reports', icon: 'FileText', path: '/budget-estimate/reports' },
                 { id: 'be-tracking', label: 'Estimation Tracking DoF', icon: 'FileText', path: '/budget-estimate/tracking' },

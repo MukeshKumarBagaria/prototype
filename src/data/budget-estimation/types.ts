@@ -38,6 +38,14 @@ export interface EstimationRecord {
     forwardEstimateY3?: number;
     percentageDeviation: number;
 
+    // Outcome-Based Budgeting (NEW in Next Gen)
+    outcomeCategory?: string;
+    sdgGoal?: string; // SDG 1-17
+    sdgTarget?: string;
+    genderTag?: 'Women' | 'Child' | 'Youth' | 'General';
+    scstTag?: boolean;
+    geographyTag?: string; // State/District/Block
+
     // Workflow
     status: 'draft' | 'submitted' | 'under_verification' | 'verified' | 'under_approval' | 'approved' | 'rejected' | 'returned';
     currentLevel: 'ddo_creator' | 'ddo_verifier' | 'ddo_approver' | 'bco_creator' | 'bco_verifier' | 'bco_approver';

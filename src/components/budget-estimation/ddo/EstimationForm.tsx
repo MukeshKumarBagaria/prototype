@@ -2,14 +2,17 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Send, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Save, Send, AlertTriangle, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { BudgetLineItemCard } from '@/components/budget-estimation/shared/BudgetLineItemCard';
 import { HistoricalTrends } from '@/components/budget-estimation/shared/HistoricalTrends';
 import { EstimationInputs } from '@/components/budget-estimation/shared/EstimationInputs';
 import { RemarksSection } from '@/components/budget-estimation/shared/RemarksSection';
-import { EstimationRecord } from '@/data/budget-estimation/types';
+import { OutcomeBudgetingSection } from '@/components/budget-estimation/shared/OutcomeBudgetingSection';
+import { AssetRequirementsTable } from '@/components/budget-estimation/shared/AssetRequirementsTable';
+import { CeilingExceedSection } from '@/components/budget-estimation/shared/CeilingExceedSection';
+import { EstimationRecord, AssetRequirement } from '@/data/budget-estimation/types';
 import {
     getBudgetLineItemById,
     getHistoricalDataByBudgetLineId,
@@ -21,9 +24,10 @@ interface EstimationFormProps {
     budgetLineItemId: string;
     initialData?: Partial<EstimationRecord>;
     mode: 'create' | 'edit';
+    userRole?: 'creator' | 'verifier' | 'approver';
 }
 
-export function EstimationForm({ estimationId, budgetLineItemId, initialData, mode }: EstimationFormProps) {
+export function EstimationForm({ estimationId, budgetLineItemId, initialData, mode, userRole = 'creator' }: EstimationFormProps) {
     const router = useRouter();
     const budgetLine = getBudgetLineItemById(budgetLineItemId);
     const historicalData = getHistoricalDataByBudgetLineId(budgetLineItemId);
@@ -33,7 +37,19 @@ export function EstimationForm({ estimationId, budgetLineItemId, initialData, mo
         budgetEstimateNextYear: initialData?.budgetEstimateNextYear || 0,
         forwardEstimateY2: initialData?.forwardEstimateY2 || 0,
         forwardEstimateY3: initialData?.forwardEstimateY3 || 0,
-        creatorRemarks: initialData?.creatorRemarks || ''
+        creatorRemarks: initialData?.creatorRemarks || '',
+        // Outcome budgeting fields
+        outcomeCategory: initialData?.outcomeCategory || '',
+        sdgGoal: initialData?.sdgGoal || '',
+        sdgTarget: initialData?.sdgTarget || '',
+        genderTag: initialData?.genderTag || 'General' as const,
+        scstTag: initialData?.scstTag || false,
+        geographyTag: initialData?.geographyTag || '',
+        // Ceiling exceed fields
+        exceedJustification: initialData?.exceedJustification || '',
+        exceedAttachment: initialData?.exceedAttachment || '',
+        // Assets
+        assets: initialData?.assets || [] as AssetRequirement[]
     });
 
     const [saving, setSaving] = useState(false);
@@ -70,7 +86,11 @@ export function EstimationForm({ estimationId, budgetLineItemId, initialData, mo
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link href="/budget-estimation/ddo-creator">
+                        <Link href={
+                            userRole === 'verifier' ? '/budget-estimation/ddo-verifier' :
+                                userRole === 'approver' ? '/budget-estimation/ddo-approver' :
+                                    '/budget-estimation/ddo-creator'
+                        }>
                             <Button variant="ghost" size="sm" className="gap-2">
                                 <ArrowLeft size={16} />
                                 Back
@@ -78,29 +98,92 @@ export function EstimationForm({ estimationId, budgetLineItemId, initialData, mo
                         </Link>
                         <div>
                             <h1 className="text-3xl font-bold text-slate-900">
-                                {mode === 'create' ? 'New' : 'Edit'} Budget Estimation
+                                {mode === 'create' ? 'New' : userRole === 'verifier' ? 'Verify' : userRole === 'approver' ? 'Approve' : 'Edit'} Budget Estimation
                             </h1>
-                            <p className="text-slate-500 mt-1">Fill in the estimation details below</p>
+                            <p className="text-slate-500 mt-1">
+                                {userRole === 'verifier' ? 'Review and verify the estimation' :
+                                    userRole === 'approver' ? 'Review and approve the estimation' :
+                                        'Fill in the estimation details below'}
+                            </p>
                         </div>
                     </div>
                     <div className="flex gap-3">
-                        <Button
-                            variant="outline"
-                            className="gap-2"
-                            onClick={() => handleSave(false)}
-                            disabled={saving}
-                        >
-                            <Save size={16} />
-                            Save Draft
-                        </Button>
-                        <Button
-                            className="gap-2"
-                            onClick={() => handleSave(true)}
-                            disabled={saving || formData.budgetEstimateNextYear === 0}
-                        >
-                            <Send size={16} />
-                            Submit for Verification
-                        </Button>
+                        {userRole === 'creator' && (
+                            <>
+                                <Button
+                                    variant="outline"
+                                    className="gap-2"
+                                    onClick={() => handleSave(false)}
+                                    disabled={saving}
+                                >
+                                    <Save size={16} />
+                                    Save Draft
+                                </Button>
+                                <Button
+                                    className="gap-2"
+                                    onClick={() => handleSave(true)}
+                                    disabled={saving || formData.budgetEstimateNextYear === 0}
+                                >
+                                    <Send size={16} />
+                                    Submit for Verification
+                                </Button>
+                            </>
+                        )}
+                        {userRole === 'verifier' && (
+                            <>
+                                <Button
+                                    variant="outline"
+                                    className="gap-2"
+                                    onClick={() => handleSave(false)}
+                                    disabled={saving}
+                                >
+                                    <Save size={16} />
+                                    Save Changes
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="gap-2 text-orange-600 border-orange-300  hover:bg-orange-50"
+                                    onClick={() => router.push('/budget-estimation/ddo-verifier')}
+                                >
+                                    Return to Creator
+                                </Button>
+                                <Button
+                                    className="gap-2"
+                                    onClick={() => handleSave(true)}
+                                    disabled={saving}
+                                >
+                                    Forward to Approver
+                                </Button>
+                            </>
+                        )}
+                        {userRole === 'approver' && (
+                            <>
+                                <Button
+                                    variant="outline"
+                                    className="gap-2"
+                                    onClick={() => handleSave(false)}
+                                    disabled={saving}
+                                >
+                                    <Save size={16} />
+                                    Save Changes
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="gap-2 text-orange-600 border-orange-300 hover:bg-orange-50"
+                                    onClick={() => router.push('/budget-estimation/ddo-approver')}
+                                >
+                                    Return to Verifier
+                                </Button>
+                                <Button
+                                    className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+                                    onClick={() => handleSave(true)}
+                                    disabled={saving}
+                                >
+                                    <CheckCircle size={16} />
+                                    Approve & Send to BCO
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -132,6 +215,32 @@ export function EstimationForm({ estimationId, budgetLineItemId, initialData, mo
                     ceilingLimit={budgetLine.ceilingLimit}
                     currentYearBE={historicalData.currentYearBE}
                     onChange={handleInputChange}
+                />
+
+                {/* Outcome-Based Budgeting */}
+                <OutcomeBudgetingSection
+                    outcomeCategory={formData.outcomeCategory}
+                    sdgGoal={formData.sdgGoal}
+                    sdgTarget={formData.sdgTarget}
+                    genderTag={formData.genderTag}
+                    scstTag={formData.scstTag}
+                    geographyTag={formData.geographyTag}
+                    onChange={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
+                />
+
+                {/* Asset Requirements */}
+                <AssetRequirementsTable
+                    assets={formData.assets}
+                    onChange={(assets) => setFormData(prev => ({ ...prev, assets }))}
+                />
+
+                {/* Ceiling Exceed Section */}
+                <CeilingExceedSection
+                    exceedsCeiling={exceedsCeiling}
+                    justification={formData.exceedJustification}
+                    attachment={formData.exceedAttachment}
+                    onJustificationChange={(value) => setFormData(prev => ({ ...prev, exceedJustification: value }))}
+                    onAttachmentChange={(value) => setFormData(prev => ({ ...prev, exceedAttachment: value }))}
                 />
 
                 {/* Remarks */}

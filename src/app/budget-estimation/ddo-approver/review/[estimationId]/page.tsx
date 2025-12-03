@@ -5,7 +5,7 @@ import { EstimationForm } from '@/components/budget-estimation/ddo/EstimationFor
 import { MOCK_ESTIMATIONS } from '@/data/budget-estimation/mockData';
 import { use } from 'react';
 
-export default function EditEstimationPage({ params }: { params: Promise<{ estimationId: string }> }) {
+export default function DDOApproverReviewPage({ params }: { params: Promise<{ estimationId: string }> }) {
     const { estimationId } = use(params);
     const estimation = MOCK_ESTIMATIONS.find(e => e.id === estimationId);
 
@@ -24,6 +24,7 @@ export default function EditEstimationPage({ params }: { params: Promise<{ estim
             budgetLineItemId={estimation.budgetLineItemId}
             initialData={estimation}
             mode="edit"
+            userRole="approver"
         />
     );
 }
