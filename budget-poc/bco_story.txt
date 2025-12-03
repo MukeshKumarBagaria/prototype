@@ -1,0 +1,435 @@
+User Story: Budget Estimation for Expenditure by BCO
+User Story ID
+BEL_BM_IFMIS_Budget_Estimation_Expenditure
+Module Name
+Budget Management
+BEL Contact Person
+Kamal Saryam, Shrikant Tirki and Gaurav Singh
+DTA SPOC Person
+Vivek Gharu
+DTA Technical Person
+Abhay Borikar
+
+User Story:
+	•	As a BCO Creator, I want to submit the budget estimation for Expenditure for Verification.
+	•	As a BCO Verifier, I want to review, edit and forward the Budget estimation for approval.
+	•	As a BCO Approver, I want to review, edit and approve the budget estimation.
+Pre-Conditions
+	•	Budget Line Items to be mapped with BCO.
+	•	Department-wise ceilings defined and approved by FD.
+	•	Budget module activated by Finance Department.
+	•	Budget Submission date within the time limit as per Budget Circular.
+Process Flow
+	•	Data Synchronization:
+Based on Employee login, BCO linked with department details are fetched from HRMS through secure API.
+	•	Auto-Fetch Components: System retrieves all budget line items assigned to BCO.
+System retrieves actual Expenditure for budget line items occurred during previous 5 years.
+System retrieves the Budget Allocation of previous year.
+	•	BCO Creator:
+BCO Creator receive file from multiple DDO for verification and compilation. OR
+BCO Creator can also create Budget Estimates by himself. To create Budget estimate He selects the budget line item and enters the budget estimation for next 3 years and revised estimation for current year for Expenditure and Expenditure separately.
+BCO Creator enters the data for each budget line item and saves.
+BCO creator can create and enter token amount for new budget line for approval by Finance department (Assembly). 
+BCO Creator submits to verifier once all budget line data is ready
+	•	Rule Engine Validation:
+Budget Estimate submitted should not be more that overall ceiling limit for Expenditure. If limit is exceeded display error message
+	•	BCO Verifier:
+BCO Verifier views the budget estimation submitted by BCO creator. BCO Verifier can either edit or return to BCO Creator or forward the file to BCO Approver.
+BCO verifier can also create new budget line and enter token amount for approval by Finance department.
+
+
+	•	BCO Approver:
+BCO Approver views the budget estimation forwarded by BCO verifier. He can either edit or return to BCO Verifier or approve the file. 
+BCO verifier can also create new budget line for Expenditure and enter token amount for approval by Finance department.
+The approved budget will be sent to Admin HOA
+	•	Audit Trail and Reporting: Each action creation, modification, verification, approval, rejection logged for audit. 
+Process Flow Diagram:
+
+
+Rule Management / Business Logic:
+Rule ID
+Rule Name
+Category
+Trigger / Event
+Input Parameters / Data Fields
+Logic / Formula / Condition
+Effective From
+Owner Department/Editable By
+Parameter Name
+Data Type
+Value Range
+Current Values
+Source / Master Table
+Remarks
+1
+Check Ceiling Limit
+Budget Module
+Enter or Edit of Budget Estimate
+Budget Estimate
+BE>Ceiling Limit
+
+Budget Module
+
+Numeric
+
+
+
+
+
+Acts/Rules/Circulars Governing the Process Flow:
+	•	Provisional Budget Program for Revised Estimates and Budget Activities for FY 2024–25 and Preparation of Budget Estimates for FY 2025–26 (dated 25-09-2024)
+	•	Madhya Pradesh Financial Code Vol. I & II
+	•	Treasury Code Rules & Budget Manual of GoMP
+	•	FD Circulars regarding ceiling fixation, budget submission, and timeline adherence
+Acceptance Criteria (End of Process):
+	•	Budget Estimation is created, verified and approved for Expenditure for all the budget lines items and submitted to BCO.
+Actors Involved:
+Level
+Actor
+System Role
+Description of Responsibility
+1
+BCO Creator
+BM_BCO_Creator
+Creates the Budget Estimation and submits for verification.
+2
+BCO Verifier
+BM_BCO_Verifier
+Verifies the Budget Estimation submitted by BCO Creator. 
+3
+BCO Approver
+BM_BCO_Approver
+Approval of Budget Estimation
+
+GAP Analysis
+Current Process
+Gap Identified
+Proposed To-Be Process
+BCO Submission of Estimation
+Currently choosing each budget line item and entering data is tedious task.
+Budget estimated amount will be suggested based on past data
+No audit trail
+Compliance gaps
+Logging of each activity and fields modified
+
+
+Internal Module Integration Requirements:
+Interface ID
+Interface Name / Purpose
+Source Module
+Target Module
+Direction
+Trigger Event
+Fields (in single cell)
+IFMIS_INT_EHRMS_01
+e-HRMS → IFMIS HRMS (Employee Data Sync)
+e-HRMS
+IFMIS HRMS
+Inbound
+On Budget Estimate Selection
+EMP_ID; NAME; DESIGNATION; DEPARTMENT; 
+IFMIS_INT_ACCOUNTS
+
+e-Accounts->Get Actual Expenditure
+Accounts
+Budget
+Inbound
+On Budget Line Item
+Budget Line Item
+IFMS_INT_DEBT
+Debt->Get Interest and Principal
+Debt
+Budget
+Inbound
+On Budget Line Item
+Budget Line Item
+
+Integration with External Systems:
+Not Applicable
+Fields, Field Types, Field Length, Field Validation:
+Expenditure
+Field Name
+Unit (UI Component)
+Field Type
+Field Length
+Mandatory (Y/N)
+Validation Rule
+Remarks
+Demand No
+Auto populate
+
+
+Y
+
+Display of Budget line item
+Major
+Auto populate
+
+
+Y
+
+Display of Budget line item
+Sub Major
+Auto populate
+
+
+Y
+
+Display of Budget line item
+Minor
+Auto populate
+
+
+Y
+
+Display of Budget line item
+Segment Head
+Auto populate
+
+
+Y
+
+Display of Budget line item
+Scheme
+Auto populate
+
+
+Y
+
+Display of Budget line item
+Project
+Auto populate
+
+
+Y
+
+Display of Budget line item
+Charged or Voted
+Auto populate
+
+
+Y
+
+Display of Budget line item
+Object Head
+Auto populate
+
+
+Y
+
+Display of Budget line item
+Detail Head
+Auto populate
+
+
+Y
+
+Display of Budget line item
+Departmental Account for Previous Year 
+Auto populate
+
+
+Y
+
+
+Budget Allotment for Current Year
+Auto populate
+
+
+Y
+
+
+Actual Expenditure as on 31 Aug XXXX 
+Auto populate
+
+
+Y
+
+
+Proposed Expenditure for Sep XXXX to Mar XXXX
+Auto populate
+
+
+Y
+
+
+Total
+Calculate
+
+
+Y
+
+Actual Expenditure+ Proposed Expenditure
+Amount proposed for Revised estimate (Current Year)
+Input
+Numeric
+0 to 999999999999
+Y
+
+
+Amount proposed for Main Budget (Next Year)
+Input
+Numeric
+0 to 999999999999
+Y
+
+
+Percentage Deviation
+Calculate
+Numeric
+0 to 100
+Y
+
+
+Amount proposed for Main Budget (Next Year+1)
+Input
+Numeric
+0 to 999999999999
+
+
+
+Amount proposed for Main Budget (Next Year+2)
+Input
+Numeric
+0 to 999999999999
+
+
+
+‘Previous 5 years' actuals’ 
+Auto populate
+
+
+
+
+
+Project Details
+Auto populate
+
+
+
+
+
+Remarks 
+Input
+Text
+1000 Chars
+
+
+
+
+Masters
+	•	Budget Line Items
+	•	Department
+UI / UX Requirement:
+Web Application:
+	•	BCO Creator Dashboard with List of Budget Line Items along with status.
+	•	Status –Draft, Under Verification, Verified, Under Approval, Approved.
+	•	BCO Creator Entry interface with remarks field.
+	•	BCO Verifier Worklist with Pending Files for verification.
+	•	BCO Approver Worklist with Pending Files for approval.
+	•	Option for BCO Verifier and Approver to edit, enter remarks, return or reject.
+Mobile Application: 
+	•	NA
+AI / ML Use Cases:
+	•	Suggest budget estimation and revised estimation amount
+	•	Identify anomalies in budget estimate and alert based on history.
+Reports:
+	•	Budget Estimate Report
+	•	Budget Estimate Status Report
+	•	Ceiling Compliance Report
+	•	Audit Trail Report
+Dashboard Requirement:
+	•	KPIs: Total Estimation Requested.
+	•	Real-time Approval Status Widget.
+Requirement for Notifications/Alerts:
+Notification ID
+Trigger
+Recipient
+Mode
+Message Summary
+NTF_BM_01
+BCO Creator Submit Budget 
+BCO Verifier
+App Notification
+“Budget Estimate Received for Verification”
+NTF_ BM_02
+BCO Verifier Submit Budget 
+BCO Approver
+App Notification
+“Budget Estimate Received for Approval”
+NTF_ BM_02
+BCO Approver Submit Budget
+Admin HOA
+
+App Notification
+“Budget Estimate Received for Approval”
+NTF_BM_03
+Rule violation detected
+BCO Creator
+Alert 
+“Budget Estimates limit exceeds”
+Error Messages:
+Error Code
+Condition
+Description
+ERR_AD_01
+Sync Failure
+Employee record missing from e-HRMS
+ERR_AD_02
+Rule Engine Validation Failed
+Ceiling limit exceeded
+ERR_AD_03
+Workflow Hold
+Already Submitted 
+IFMIS DB Table Reference:
+	•	Master Table:
+Sl No
+IFMIS 1.0 Table
+IFMIS NG Table
+Data Migration Remarks
+Remarks
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	•	Transaction Table:
+Sl No
+IFMIS 1.0 Table
+IFMIS NG Table
+Data Migration Remarks
+Remarks
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Wireframe:
+
+
+
+Unit Test Cases: 
+
+
