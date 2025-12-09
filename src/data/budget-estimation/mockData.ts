@@ -1,295 +1,221 @@
 import { BudgetLineItem, HistoricalData, EstimationRecord, User, AssetRequirement } from './types';
 
-// Mock Budget Line Items
-export const MOCK_BUDGET_LINE_ITEMS: BudgetLineItem[] = [
-    {
-        id: 'BL001',
-        demandNo: 'D-23',
-        majorHead: '2202',
-        subMajorHead: '01',
-        minorHead: '110',
-        segmentHead: 'Education',
-        scheme: 'Samagra Shiksha Abhiyan',
-        project: 'SSA-MP-2024',
-        chargedOrVoted: 'Voted',
-        objectHead: '13',
-        detailHead: 'Office Expenses',
-        ddoCode: 'DDO/MP/001',
-        ddoName: 'Directorate of Public Instructions, Bhopal',
-        ceilingLimit: 50000000 // 5 Crores
-    },
-    {
-        id: 'BL002',
-        demandNo: 'D-23',
-        majorHead: '2202',
-        subMajorHead: '01',
-        minorHead: '101',
-        segmentHead: 'Education',
-        scheme: 'Mid-Day Meal',
-        chargedOrVoted: 'Voted',
-        objectHead: '21',
-        detailHead: 'Food Materials',
-        ddoCode: 'DDO/MP/001',
-        ddoName: 'Directorate of Public Instructions, Bhopal',
-        ceilingLimit: 120000000 // 12 Crores
-    },
-    {
-        id: 'BL003',
-        demandNo: 'D-24',
-        majorHead: '2210',
-        subMajorHead: '01',
-        minorHead: '110',
-        segmentHead: 'Health',
-        scheme: 'National Health Mission',
-        project: 'NHM-MP-2024',
-        chargedOrVoted: 'Voted',
-        objectHead: '14',
-        detailHead: 'Medical Equipment',
-        ddoCode: 'DDO/MP/002',
-        ddoName: 'Directorate of Health Services, Indore',
-        ceilingLimit: 80000000 // 8 Crores
-    },
-    {
-        id: 'BL004',
-        demandNo: 'D-25',
-        majorHead: '2215',
-        subMajorHead: '01',
-        minorHead: '110',
-        segmentHead: 'Water Supply',
-        scheme: 'Jal Jeevan Mission',
-        chargedOrVoted: 'Voted',
-        objectHead: '24',
-        detailHead: 'Water Infrastructure',
-        ddoCode: 'DDO/MP/003',
-        ddoName: 'Public Health Engineering Department, Jabalpur',
-        ceilingLimit: 200000000 // 20 Crores
-    },
-    {
-        id: 'BL005',
-        demandNo: 'D-26',
-        majorHead: '3054',
-        subMajorHead: '03',
-        minorHead: '110',
-        segmentHead: 'Roads',
-        scheme: 'Pradhan Mantri Gram Sadak Yojana',
-        project: 'PMGSY-MP-2024',
-        chargedOrVoted: 'Voted',
-        objectHead: '53',
-        detailHead: 'Road Construction',
-        ddoCode: 'DDO/MP/004',
-        ddoName: 'Rural Engineering Services, Gwalior',
-        ceilingLimit: 350000000 // 35 Crores
-    }
+// Helper function to parse budget head code
+function parseBudgetHead(budgetHead: string): {
+    demand: string;
+    major: string;
+    subMajor: string;
+    minor: string;
+    segment: string;
+    ddo: string;
+    chargedOrVoted: 'Charged' | 'Voted';
+    object: string;
+    detail: string;
+} {
+    const parts = budgetHead.split('-');
+    return {
+        demand: parts[0],
+        major: parts[1],
+        subMajor: parts[2],
+        minor: parts[3],
+        segment: parts[4],
+        ddo: parts[5],
+        chargedOrVoted: parts[6] === 'C' ? 'Charged' : 'Voted',
+        object: parts[7],
+        detail: parts[8]
+    };
+}
+
+// Complete Budget data from JSON file with ALL fields
+const BUDGET_DATA = [
+    { srNo: "85", budgetHead: "006-2054-00-095-9999-2304-C-53-000", scheme: "(2304) Direction and administration", budgetEstimate: 500000.0, budgetAllotment: 500000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 500000.0, expenditure: 0.0, hoaLimit: 500000.0, exempted: "Y", balanceBCO: 500000.0, balanceDDO: 0.0 },
+    { srNo: "86", budgetHead: "006-2054-00-095-9999-2304-V-11-001", scheme: "(2304) Direction and administration", budgetEstimate: 249000000.0, budgetAllotment: 249000000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 81086856.0, remainingBudget: 167913144.0, expenditure: 81086856.0, hoaLimit: 249000000.0, exempted: "Y", balanceBCO: 167913144.0, balanceDDO: 0.0 },
+    { srNo: "87", budgetHead: "006-2054-00-095-9999-2304-V-11-003", scheme: "(2304) Direction and administration", budgetEstimate: 159360000.0, budgetAllotment: 159360000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 45749830.0, remainingBudget: 113610170.0, expenditure: 45749830.0, hoaLimit: 159360000.0, exempted: "Y", balanceBCO: 113610170.0, balanceDDO: 0.0 },
+    { srNo: "88", budgetHead: "006-2054-00-095-9999-2304-V-11-004", scheme: "(2304) Direction and administration", budgetEstimate: 2784000.0, budgetAllotment: 2784000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 346689.0, remainingBudget: 2437311.0, expenditure: 346689.0, hoaLimit: 2784000.0, exempted: "Y", balanceBCO: 2437311.0, balanceDDO: 0.0 },
+    { srNo: "89", budgetHead: "006-2054-00-095-9999-2304-V-11-006", scheme: "(2304) Direction and administration", budgetEstimate: 22673000.0, budgetAllotment: 22673000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 5041969.0, remainingBudget: 17631031.0, expenditure: 5041969.0, hoaLimit: 22673000.0, exempted: "Y", balanceBCO: 17631031.0, balanceDDO: 0.0 },
+    { srNo: "90", budgetHead: "006-2054-00-095-9999-2304-V-11-007", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 1000.0, exempted: "Y", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "91", budgetHead: "006-2054-00-095-9999-2304-V-11-008", scheme: "(2304) Direction and administration", budgetEstimate: 40000.0, budgetAllotment: 40000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 8750.0, remainingBudget: 31250.0, expenditure: 8750.0, hoaLimit: 40000.0, exempted: "Y", balanceBCO: 31250.0, balanceDDO: 0.0 },
+    { srNo: "92", budgetHead: "006-2054-00-095-9999-2304-V-11-009", scheme: "(2304) Direction and administration", budgetEstimate: 3000000.0, budgetAllotment: 3000000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 963217.0, remainingBudget: 2036783.0, expenditure: 590785.0, hoaLimit: 3000000.0, exempted: "Y", balanceBCO: 2036783.0, balanceDDO: 372432.0 },
+    { srNo: "93", budgetHead: "006-2054-00-095-9999-2304-V-11-011", scheme: "(2304) Direction and administration", budgetEstimate: 50000.0, budgetAllotment: 50000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 4000.0, remainingBudget: 46000.0, expenditure: 4000.0, hoaLimit: 50000.0, exempted: "Y", balanceBCO: 46000.0, balanceDDO: 0.0 },
+    { srNo: "94", budgetHead: "006-2054-00-095-9999-2304-V-11-016", scheme: "(2304) Direction and administration", budgetEstimate: 50000.0, budgetAllotment: 50000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 4000.0, remainingBudget: 46000.0, expenditure: 4000.0, hoaLimit: 50000.0, exempted: "Y", balanceBCO: 46000.0, balanceDDO: 0.0 },
+    { srNo: "95", budgetHead: "006-2054-00-095-9999-2304-V-11-018", scheme: "(2304) Direction and administration", budgetEstimate: 300000.0, budgetAllotment: 300000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 300000.0, expenditure: 0.0, hoaLimit: 300000.0, exempted: "Y", balanceBCO: 300000.0, balanceDDO: 0.0 },
+    { srNo: "96", budgetHead: "006-2054-00-095-9999-2304-V-11-021", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 1000.0, exempted: "Y", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "97", budgetHead: "006-2054-00-095-9999-2304-V-11-025", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 1000.0, exempted: "Y", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "98", budgetHead: "006-2054-00-095-9999-2304-V-12-000", scheme: "(2304) Direction and administration", budgetEstimate: 110000.0, budgetAllotment: 110000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 110000.0, remainingBudget: 0.0, expenditure: 48556.0, hoaLimit: 110000.0, exempted: "Y", balanceBCO: 0.0, balanceDDO: 61444.0 },
+    { srNo: "99", budgetHead: "006-2054-00-095-9999-2304-V-12-001", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 1000.0, exempted: "Y", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "100", budgetHead: "006-2054-00-095-9999-2304-V-12-003", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 1000.0, exempted: "Y", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "101", budgetHead: "006-2054-00-095-9999-2304-V-12-006", scheme: "(2304) Direction and administration", budgetEstimate: 3000.0, budgetAllotment: 3000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 3000.0, expenditure: 0.0, hoaLimit: 3000.0, exempted: "Y", balanceBCO: 3000.0, balanceDDO: 0.0 },
+    { srNo: "102", budgetHead: "006-2054-00-095-9999-2304-V-12-008", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 1000.0, exempted: "Y", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "103", budgetHead: "006-2054-00-095-9999-2304-V-14-000", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 250.0, exempted: "N", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "104", budgetHead: "006-2054-00-095-9999-2304-V-16-001", scheme: "(2304) Direction and administration", budgetEstimate: 2355000.0, budgetAllotment: 2355000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 1354063.0, remainingBudget: 1000937.0, expenditure: 1354063.0, hoaLimit: 2355000.0, exempted: "Y", balanceBCO: 1000937.0, balanceDDO: 0.0 },
+    { srNo: "105", budgetHead: "006-2054-00-095-9999-2304-V-16-003", scheme: "(2304) Direction and administration", budgetEstimate: 1507000.0, budgetAllotment: 1507000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 691585.0, remainingBudget: 815415.0, expenditure: 691585.0, hoaLimit: 1507000.0, exempted: "Y", balanceBCO: 815415.0, balanceDDO: 0.0 },
+    { srNo: "106", budgetHead: "006-2054-00-095-9999-2304-V-16-006", scheme: "(2304) Direction and administration", budgetEstimate: 3000.0, budgetAllotment: 3000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 3000.0, expenditure: 0.0, hoaLimit: 3000.0, exempted: "Y", balanceBCO: 3000.0, balanceDDO: 0.0 },
+    { srNo: "107", budgetHead: "006-2054-00-095-9999-2304-V-16-008", scheme: "(2304) Direction and administration", budgetEstimate: 150000.0, budgetAllotment: 150000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 150000.0, expenditure: 0.0, hoaLimit: 150000.0, exempted: "Y", balanceBCO: 150000.0, balanceDDO: 0.0 },
+    { srNo: "108", budgetHead: "006-2054-00-095-9999-2304-V-16-009", scheme: "(2304) Direction and administration", budgetEstimate: 100000.0, budgetAllotment: 100000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 100000.0, remainingBudget: 0.0, expenditure: 21073.0, hoaLimit: 100000.0, exempted: "Y", balanceBCO: 0.0, balanceDDO: 78927.0 },
+    { srNo: "109", budgetHead: "006-2054-00-095-9999-2304-V-16-010", scheme: "(2304) Direction and administration", budgetEstimate: 165000.0, budgetAllotment: 165000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 165000.0, remainingBudget: 0.0, expenditure: 0.0, hoaLimit: 165000.0, exempted: "Y", balanceBCO: 0.0, balanceDDO: 165000.0 },
+    { srNo: "110", budgetHead: "006-2054-00-095-9999-2304-V-16-018", scheme: "(2304) Direction and administration", budgetEstimate: 2000.0, budgetAllotment: 2000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 2000.0, remainingBudget: 0.0, expenditure: 0.0, hoaLimit: 2000.0, exempted: "Y", balanceBCO: 0.0, balanceDDO: 2000.0 },
+    { srNo: "111", budgetHead: "006-2054-00-095-9999-2304-V-19-001", scheme: "(2304) Direction and administration", budgetEstimate: 598000.0, budgetAllotment: 598000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 598000.0, remainingBudget: 0.0, expenditure: 352000.0, hoaLimit: 598000.0, exempted: "Y", balanceBCO: 0.0, balanceDDO: 246000.0 },
+    { srNo: "112", budgetHead: "006-2054-00-095-9999-2304-V-19-003", scheme: "(2304) Direction and administration", budgetEstimate: 385000.0, budgetAllotment: 385000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 385000.0, remainingBudget: 0.0, expenditure: 183916.0, hoaLimit: 385000.0, exempted: "Y", balanceBCO: 0.0, balanceDDO: 201084.0 },
+    { srNo: "113", budgetHead: "006-2054-00-095-9999-2304-V-19-006", scheme: "(2304) Direction and administration", budgetEstimate: 69000.0, budgetAllotment: 69000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 69000.0, remainingBudget: 0.0, expenditure: 29530.0, hoaLimit: 69000.0, exempted: "Y", balanceBCO: 0.0, balanceDDO: 39470.0 },
+    { srNo: "114", budgetHead: "006-2054-00-095-9999-2304-V-19-008", scheme: "(2304) Direction and administration", budgetEstimate: 10000.0, budgetAllotment: 10000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 10000.0, remainingBudget: 0.0, expenditure: 3538.0, hoaLimit: 10000.0, exempted: "Y", balanceBCO: 0.0, balanceDDO: 6462.0 },
+    { srNo: "115", budgetHead: "006-2054-00-095-9999-2304-V-19-009", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 1000.0, exempted: "Y", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "116", budgetHead: "006-2054-00-095-9999-2304-V-19-011", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 1000.0, exempted: "Y", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "117", budgetHead: "006-2054-00-095-9999-2304-V-19-016", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 1000.0, exempted: "Y", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "118", budgetHead: "006-2054-00-095-9999-2304-V-19-018", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 1000.0, exempted: "Y", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "119", budgetHead: "006-2054-00-095-9999-2304-V-21-001", scheme: "(2304) Direction and administration", budgetEstimate: 1440000.0, budgetAllotment: 1440000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 82724.0, remainingBudget: 1357276.0, expenditure: 82724.0, hoaLimit: 1440000.0, exempted: "Y", balanceBCO: 1357276.0, balanceDDO: 0.0 },
+    { srNo: "120", budgetHead: "006-2054-00-095-9999-2304-V-21-002", scheme: "(2304) Direction and administration", budgetEstimate: 72000.0, budgetAllotment: 72000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 8085.0, remainingBudget: 63915.0, expenditure: 8085.0, hoaLimit: 72000.0, exempted: "Y", balanceBCO: 63915.0, balanceDDO: 0.0 },
+    { srNo: "121", budgetHead: "006-2054-00-095-9999-2304-V-21-003", scheme: "(2304) Direction and administration", budgetEstimate: 2000.0, budgetAllotment: 2000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 2000.0, expenditure: 0.0, hoaLimit: 2000.0, exempted: "Y", balanceBCO: 2000.0, balanceDDO: 0.0 },
+    { srNo: "122", budgetHead: "006-2054-00-095-9999-2304-V-22-001", scheme: "(2304) Direction and administration", budgetEstimate: 80000.0, budgetAllotment: 80000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 40000.0, remainingBudget: 40000.0, expenditure: 40000.0, hoaLimit: 80000.0, exempted: "Y", balanceBCO: 40000.0, balanceDDO: 0.0 },
+    { srNo: "123", budgetHead: "006-2054-00-095-9999-2304-V-22-002", scheme: "(2304) Direction and administration", budgetEstimate: 700000.0, budgetAllotment: 700000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 452603.0, remainingBudget: 247397.0, expenditure: 452603.0, hoaLimit: 700000.0, exempted: "Y", balanceBCO: 247397.0, balanceDDO: 0.0 },
+    { srNo: "124", budgetHead: "006-2054-00-095-9999-2304-V-22-003", scheme: "(2304) Direction and administration", budgetEstimate: 200000.0, budgetAllotment: 200000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 200000.0, expenditure: 0.0, hoaLimit: 944149.0, exempted: "N", balanceBCO: 200000.0, balanceDDO: 0.0 },
+    { srNo: "125", budgetHead: "006-2054-00-095-9999-2304-V-22-004", scheme: "(2304) Direction and administration", budgetEstimate: 100000.0, budgetAllotment: 100000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 50000.0, remainingBudget: 50000.0, expenditure: 40236.0, hoaLimit: 100000.0, exempted: "Y", balanceBCO: 50000.0, balanceDDO: 9764.0 },
+    { srNo: "126", budgetHead: "006-2054-00-095-9999-2304-V-22-005", scheme: "(2304) Direction and administration", budgetEstimate: 10000000.0, budgetAllotment: 10000000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 5989057.0, remainingBudget: 4010943.0, expenditure: 5989057.0, hoaLimit: 10000000.0, exempted: "Y", balanceBCO: 4010943.0, balanceDDO: 0.0 },
+    { srNo: "127", budgetHead: "006-2054-00-095-9999-2304-V-22-006", scheme: "(2304) Direction and administration", budgetEstimate: 96000.0, budgetAllotment: 96000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 96000.0, remainingBudget: 0.0, expenditure: 0.0, hoaLimit: 944149.0, exempted: "N", balanceBCO: 0.0, balanceDDO: 96000.0 },
+    { srNo: "128", budgetHead: "006-2054-00-095-9999-2304-V-22-007", scheme: "(2304) Direction and administration", budgetEstimate: 1200000.0, budgetAllotment: 1200000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 500000.0, remainingBudget: 700000.0, expenditure: 13915.0, hoaLimit: 1200000.0, exempted: "Y", balanceBCO: 700000.0, balanceDDO: 486085.0 },
+    { srNo: "129", budgetHead: "006-2054-00-095-9999-2304-V-24-000", scheme: "(2304) Direction and administration", budgetEstimate: 40000.0, budgetAllotment: 40000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 3449.0, remainingBudget: 36551.0, expenditure: 3449.0, hoaLimit: 10000.0, exempted: "N", balanceBCO: 36551.0, balanceDDO: 0.0 },
+    { srNo: "130", budgetHead: "006-2054-00-095-9999-2304-V-24-001", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 250.0, exempted: "N", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "131", budgetHead: "006-2054-00-095-9999-2304-V-24-002", scheme: "(2304) Direction and administration", budgetEstimate: 400000.0, budgetAllotment: 400000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 400000.0, expenditure: 0.0, hoaLimit: 100000.0, exempted: "N", balanceBCO: 400000.0, balanceDDO: 0.0 },
+    { srNo: "132", budgetHead: "006-2054-00-095-9999-2304-V-24-003", scheme: "(2304) Direction and administration", budgetEstimate: 2000.0, budgetAllotment: 2000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 2000.0, expenditure: 0.0, hoaLimit: 500.0, exempted: "N", balanceBCO: 2000.0, balanceDDO: 0.0 },
+    { srNo: "133", budgetHead: "006-2054-00-095-9999-2304-V-24-004", scheme: "(2304) Direction and administration", budgetEstimate: 100000.0, budgetAllotment: 100000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 100000.0, expenditure: 0.0, hoaLimit: 25000.0, exempted: "N", balanceBCO: 100000.0, balanceDDO: 0.0 },
+    { srNo: "134", budgetHead: "006-2054-00-095-9999-2304-V-24-005", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 250.0, exempted: "N", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "135", budgetHead: "006-2054-00-095-9999-2304-V-24-006", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 250.0, exempted: "N", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "136", budgetHead: "006-2054-00-095-9999-2304-V-24-009", scheme: "(2304) Direction and administration", budgetEstimate: 2000.0, budgetAllotment: 2000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 2000.0, expenditure: 0.0, hoaLimit: 500.0, exempted: "N", balanceBCO: 2000.0, balanceDDO: 0.0 },
+    { srNo: "137", budgetHead: "006-2054-00-095-9999-2304-V-24-010", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 250.0, exempted: "N", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "138", budgetHead: "006-2054-00-095-9999-2304-V-24-011", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 250.0, exempted: "N", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "139", budgetHead: "006-2054-00-095-9999-2304-V-24-012", scheme: "(2304) Direction and administration", budgetEstimate: 500000.0, budgetAllotment: 500000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 500000.0, expenditure: 0.0, hoaLimit: 125000.0, exempted: "N", balanceBCO: 500000.0, balanceDDO: 0.0 },
+    { srNo: "140", budgetHead: "006-2054-00-095-9999-2304-V-27-001", scheme: "(2304) Direction and administration", budgetEstimate: 2000.0, budgetAllotment: 2000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 2000.0, expenditure: 0.0, hoaLimit: 500.0, exempted: "N", balanceBCO: 2000.0, balanceDDO: 0.0 },
+    { srNo: "141", budgetHead: "006-2054-00-095-9999-2304-V-27-002", scheme: "(2304) Direction and administration", budgetEstimate: 620000.0, budgetAllotment: 620000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 620000.0, expenditure: 0.0, hoaLimit: 155000.0, exempted: "N", balanceBCO: 620000.0, balanceDDO: 0.0 },
+    { srNo: "142", budgetHead: "006-2054-00-095-9999-2304-V-27-003", scheme: "(2304) Direction and administration", budgetEstimate: 200000.0, budgetAllotment: 200000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 200000.0, expenditure: 0.0, hoaLimit: 50000.0, exempted: "N", balanceBCO: 200000.0, balanceDDO: 0.0 },
+    { srNo: "143", budgetHead: "006-2054-00-095-9999-2304-V-28-001", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 250.0, exempted: "N", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "144", budgetHead: "006-2054-00-095-9999-2304-V-28-002", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 250.0, exempted: "N", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "145", budgetHead: "006-2054-00-095-9999-2304-V-28-003", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 250.0, exempted: "N", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "146", budgetHead: "006-2054-00-095-9999-2304-V-29-001", scheme: "(2304) Direction and administration", budgetEstimate: 1400000.0, budgetAllotment: 1400000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 204523.0, remainingBudget: 1195477.0, expenditure: 204523.0, hoaLimit: 1400000.0, exempted: "Y", balanceBCO: 1195477.0, balanceDDO: 0.0 },
+    { srNo: "147", budgetHead: "006-2054-00-095-9999-2304-V-29-002", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 1000.0, exempted: "Y", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "148", budgetHead: "006-2054-00-095-9999-2304-V-29-003", scheme: "(2304) Direction and administration", budgetEstimate: 1000.0, budgetAllotment: 1000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 1000.0, expenditure: 0.0, hoaLimit: 1000.0, exempted: "Y", balanceBCO: 1000.0, balanceDDO: 0.0 },
+    { srNo: "149", budgetHead: "006-2054-00-095-9999-2304-V-30-001", scheme: "(2304) Direction and administration", budgetEstimate: 10000.0, budgetAllotment: 10000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 10000.0, expenditure: 0.0, hoaLimit: 2500.0, exempted: "N", balanceBCO: 10000.0, balanceDDO: 0.0 },
+    { srNo: "150", budgetHead: "006-2054-00-095-9999-2304-V-30-002", scheme: "(2304) Direction and administration", budgetEstimate: 10000.0, budgetAllotment: 10000.0, budgetReappropriation: 0.0, budgetSurrender: 0.0, budgetDistribution: 0.0, remainingBudget: 10000.0, expenditure: 0.0, hoaLimit: 2500.0, exempted: "N", balanceBCO: 10000.0, balanceDDO: 0.0 }
 ];
 
-// Mock Historical Data
-export const MOCK_HISTORICAL_DATA: HistoricalData[] = [
-    {
-        budgetLineItemId: 'BL001',
-        fy5: 38000000,
-        fy4: 41000000,
-        fy3: 43500000,
-        fy2: 45000000,
-        fy1: 47000000,
-        currentYearBE: 48000000,
-        actualTillDate: 28000000,
-        projectedBalance: 18000000
-    },
-    {
-        budgetLineItemId: 'BL002',
-        fy5: 95000000,
-        fy4: 100000000,
-        fy3: 105000000,
-        fy2: 110000000,
-        fy1: 115000000,
-        currentYearBE: 118000000,
-        actualTillDate: 70000000,
-        projectedBalance: 45000000
-    },
-    {
-        budgetLineItemId: 'BL003',
-        fy5: 62000000,
-        fy4: 66000000,
-        fy3: 70000000,
-        fy2: 73000000,
-        fy1: 76000000,
-        currentYearBE: 78000000,
-        actualTillDate: 46000000,
-        projectedBalance: 30000000
-    },
-    {
-        budgetLineItemId: 'BL004',
-        fy5: 150000000,
-        fy4: 165000000,
-        fy3: 175000000,
-        fy2: 185000000,
-        fy1: 190000000,
-        currentYearBE: 195000000,
-        actualTillDate: 115000000,
-        projectedBalance: 75000000
-    },
-    {
-        budgetLineItemId: 'BL005',
-        fy5: 280000000,
-        fy4: 300000000,
-        fy3: 315000000,
-        fy2: 330000000,
-        fy1: 340000000,
-        currentYearBE: 345000000,
-        actualTillDate: 200000000,
-        projectedBalance: 130000000
-    }
-];
+// Generate Budget Line Items from data with ALL fields
+export const MOCK_BUDGET_LINE_ITEMS: BudgetLineItem[] = BUDGET_DATA.map((item, index) => {
+    const parsed = parseBudgetHead(item.budgetHead);
+    return {
+        id: `BL${String(index + 1).padStart(3, '0')}`,
+        srNo: item.srNo,
+        demandNo: parsed.demand,
+        majorHead: parsed.major,
+        subMajorHead: parsed.subMajor,
+        minorHead: parsed.minor,
+        segmentHead: parsed.segment,
+        scheme: item.scheme,
+        chargedOrVoted: parsed.chargedOrVoted,
+        objectHead: parsed.object,
+        detailHead: parsed.detail,
+        ddoCode: `DDO/${parsed.ddo}`,
+        ddoName: `DDO ${parsed.ddo} - Direction and Administration`,
+        ceilingLimit: item.hoaLimit,
+        budgetHead: item.budgetHead,
+        budgetEstimate: item.budgetEstimate,
+        budgetAllotment: item.budgetAllotment,
+        budgetReappropriation: item.budgetReappropriation,
+        budgetSurrender: item.budgetSurrender,
+        budgetDistribution: item.budgetDistribution,
+        remainingBudget: item.remainingBudget,
+        expenditure: item.expenditure,
+        hoaExpenditureLimit: item.hoaLimit,
+        exempted: item.exempted === 'Y',
+        balanceBudgetBCO: item.balanceBCO,
+        balanceBudgetDDO: item.balanceDDO
+    };
+});
+
+// Generate Historical Data from budget data
+export const MOCK_HISTORICAL_DATA: HistoricalData[] = BUDGET_DATA.map((item, index) => ({
+    budgetLineItemId: `BL${String(index + 1).padStart(3, '0')}`,
+    fy5: Math.round(item.budgetEstimate * 0.7),
+    fy4: Math.round(item.budgetEstimate * 0.75),
+    fy3: Math.round(item.budgetEstimate * 0.8),
+    fy2: Math.round(item.budgetEstimate * 0.85),
+    fy1: Math.round(item.budgetEstimate * 0.9),
+    currentYearBE: item.budgetEstimate,
+    actualTillDate: item.expenditure,
+    projectedBalance: item.remainingBudget
+}));
 
 // Mock Users
 export const MOCK_USERS: User[] = [
-    {
-        id: 'U001',
-        name: 'Rajesh Kumar',
-        designation: 'Assistant Director',
-        role: 'ddo_creator',
-        department: 'Education',
-        ddoCode: 'DDO/MP/001'
-    },
-    {
-        id: 'U002',
-        name: 'Priya Sharma',
-        designation: 'Deputy Director',
-        role: 'ddo_verifier',
-        department: 'Education',
-        ddoCode: 'DDO/MP/001'
-    },
-    {
-        id: 'U003',
-        name: 'Amit Verma',
-        designation: 'Director',
-        role: 'ddo_approver',
-        department: 'Education',
-        ddoCode: 'DDO/MP/001'
-    },
-    {
-        id: 'U004',
-        name: 'Sunita Patel',
-        designation: 'Budget Officer',
-        role: 'bco_creator',
-        department: 'Finance'
-    },
-    {
-        id: 'U005',
-        name: 'Vikram Singh',
-        designation: 'Joint Director (Budget)',
-        role: 'bco_verifier',
-        department: 'Finance'
-    },
-    {
-        id: 'U006',
-        name: 'Kavita Malhotra',
-        designation: 'Director (Budget)',
-        role: 'bco_approver',
-        department: 'Finance'
-    }
+    { id: 'U001', name: 'Rajesh Kumar', designation: 'Assistant Director', role: 'ddo_creator', department: 'Administration', ddoCode: 'DDO/2304' },
+    { id: 'U002', name: 'Priya Sharma', designation: 'Deputy Director', role: 'ddo_verifier', department: 'Administration', ddoCode: 'DDO/2304' },
+    { id: 'U003', name: 'Amit Verma', designation: 'Director', role: 'ddo_approver', department: 'Administration', ddoCode: 'DDO/2304' },
+    { id: 'U004', name: 'Sunita Patel', designation: 'Budget Officer', role: 'bco_creator', department: 'Finance' },
+    { id: 'U005', name: 'Vikram Singh', designation: 'Joint Director (Budget)', role: 'bco_verifier', department: 'Finance' },
+    { id: 'U006', name: 'Kavita Malhotra', designation: 'Director (Budget)', role: 'bco_approver', department: 'Finance' }
 ];
 
 // Mock Estimation Records
 export const MOCK_ESTIMATIONS: EstimationRecord[] = [
+    // Approved records
     {
-        id: 'EST001',
-        budgetLineItemId: 'BL001',
-        reviseEstimateCY: 46000000,
-        budgetEstimateNextYear: 49000000,
-        forwardEstimateY2: 51500000,
-        forwardEstimateY3: 54000000,
-        percentageDeviation: 2.08,
-        status: 'approved',
-        currentLevel: 'bco_approver',
-        creatorRemarks: 'Increased allocation needed for new schools',
-        verifierRemarks: 'Verified all calculations',
-        approverRemarks: 'Approved with conditions',
-        createdBy: 'U001',
-        createdAt: '2024-10-15T10:30:00Z',
-        submittedAt: '2024-10-15T14:00:00Z',
-        verifiedAt: '2024-10-16T11:00:00Z',
-        approvedAt: '2024-10-17T09:00:00Z',
-        exceedsCeiling: false
+        id: 'EST001', budgetLineItemId: 'BL001', reviseEstimateCY: 450000, budgetEstimateNextYear: 520000,
+        forwardEstimateY2: 550000, forwardEstimateY3: 580000, percentageDeviation: 4.0,
+        status: 'approved', currentLevel: 'bco_approver', creatorRemarks: 'Standard allocation',
+        verifierRemarks: 'Verified', approverRemarks: 'Approved', createdBy: 'U001',
+        createdAt: '2024-10-15T10:30:00Z', submittedAt: '2024-10-15T14:00:00Z',
+        verifiedAt: '2024-10-16T11:00:00Z', approvedAt: '2024-10-17T09:00:00Z', exceedsCeiling: false
+    },
+    // Under Verification (DDO Verifier)
+    {
+        id: 'EST002', budgetLineItemId: 'BL002', reviseEstimateCY: 240000000, budgetEstimateNextYear: 255000000,
+        forwardEstimateY2: 270000000, percentageDeviation: 2.4, status: 'under_verification',
+        currentLevel: 'ddo_verifier', creatorRemarks: 'Increased salary requirements',
+        createdBy: 'U001', createdAt: '2024-11-01T09:00:00Z', submittedAt: '2024-11-01T16:30:00Z', exceedsCeiling: false
+    },
+    // Draft (DDO Creator)
+    {
+        id: 'EST003', budgetLineItemId: 'BL003', reviseEstimateCY: 155000000, budgetEstimateNextYear: 165000000,
+        forwardEstimateY2: 175000000, percentageDeviation: 3.5, status: 'draft', currentLevel: 'ddo_creator',
+        creatorRemarks: '', createdBy: 'U001', createdAt: '2024-11-20T14:00:00Z', exceedsCeiling: false
+    },
+    // Under Approval (DDO Approver) - NEW RECORDS
+    {
+        id: 'EST004', budgetLineItemId: 'BL004', reviseEstimateCY: 2700000, budgetEstimateNextYear: 2900000,
+        forwardEstimateY2: 3100000, forwardEstimateY3: 3300000, percentageDeviation: 4.2,
+        status: 'under_approval', currentLevel: 'ddo_approver',
+        creatorRemarks: 'Additional allocation for new telephone connections',
+        verifierRemarks: 'Calculations verified. Documents complete.',
+        createdBy: 'U001', createdAt: '2024-11-25T09:00:00Z', submittedAt: '2024-11-25T15:00:00Z',
+        verifiedAt: '2024-11-26T10:00:00Z', exceedsCeiling: false
     },
     {
-        id: 'EST002',
-        budgetLineItemId: 'BL002',
-        reviseEstimateCY: 115000000,
-        budgetEstimateNextYear: 119000000,
-        forwardEstimateY2: 124000000,
-        percentageDeviation: 0.85,
-        status: 'under_verification',
-        currentLevel: 'ddo_verifier',
-        creatorRemarks: 'Increased student enrollment',
-        createdBy: 'U001',
-        createdAt: '2024-11-01T09:00:00Z',
-        submittedAt: '2024-11-01T16:30:00Z',
-        exceedsCeiling: false
+        id: 'EST005', budgetLineItemId: 'BL005', reviseEstimateCY: 22000000, budgetEstimateNextYear: 24000000,
+        forwardEstimateY2: 26000000, forwardEstimateY3: 28000000, percentageDeviation: 5.8,
+        status: 'under_approval', currentLevel: 'ddo_approver',
+        creatorRemarks: 'Salary revision impact - increased staffing requirement',
+        verifierRemarks: 'Verified against HR records and pay commission recommendations.',
+        createdBy: 'U001', createdAt: '2024-11-28T10:30:00Z', submittedAt: '2024-11-28T16:00:00Z',
+        verifiedAt: '2024-11-29T11:30:00Z', exceedsCeiling: false
     },
     {
-        id: 'EST003',
-        budgetLineItemId: 'BL003',
-        reviseEstimateCY: 76000000,
-        budgetEstimateNextYear: 79000000,
-        forwardEstimateY2: 82000000,
-        percentageDeviation: 1.28,
-        status: 'draft',
-        currentLevel: 'ddo_creator',
-        creatorRemarks: '',
-        createdBy: 'U001',
-        createdAt: '2024-11-20T14:00:00Z',
-        exceedsCeiling: false
+        id: 'EST006', budgetLineItemId: 'BL008', reviseEstimateCY: 2800000, budgetEstimateNextYear: 3200000,
+        forwardEstimateY2: 3500000, percentageDeviation: 6.7,
+        status: 'under_approval', currentLevel: 'ddo_approver',
+        creatorRemarks: 'Office renovation and travel expenses for new projects',
+        verifierRemarks: 'Detailed breakup verified. Supporting documents attached.',
+        createdBy: 'U001', createdAt: '2024-12-01T08:00:00Z', submittedAt: '2024-12-01T14:00:00Z',
+        verifiedAt: '2024-12-02T09:00:00Z', exceedsCeiling: true,
+        exceedJustification: 'Ceiling exceeded due to new project requirements approved by department head'
     },
     {
-        id: 'EST004',
-        budgetLineItemId: 'BL004',
-        reviseEstimateCY: 190000000,
-        budgetEstimateNextYear: 198000000,
-        forwardEstimateY2: 206000000,
-        percentageDeviation: 1.54,
-        status: 'under_approval',
-        currentLevel: 'bco_creator',
-        creatorRemarks: 'Expansion of water supply to 50 new villages',
-        verifierRemarks: 'All documents verified',
-        createdBy: 'U001',
-        createdAt: '2024-10-25T11:00:00Z',
-        submittedAt: '2024-10-25T17:00:00Z',
-        verifiedAt: '2024-10-26T10:00:00Z',
-        exceedsCeiling: false
-    },
-    {
-        id: 'EST005',
-        budgetLineItemId: 'BL005',
-        reviseEstimateCY: 330000000,
-        budgetEstimateNextYear: 360000000,
-        forwardEstimateY2: 380000000,
-        percentageDeviation: 4.35,
-        status: 'returned',
-        currentLevel: 'ddo_creator',
-        creatorRemarks: 'Major new road construction projects',
-        verifierRemarks: '',
-        approverRemarks: 'Please justify ceiling excess',
-        createdBy: 'U001',
-        createdAt: '2024-11-10T10:00:00Z',
-        submittedAt: '2024-11-10T15:00:00Z',
-        modifiedAt: '2024-11-12T09:00:00Z',
-        exceedsCeiling: true,
-        exceedJustification: 'New national highway project allocation',
-        assets: [
-            {
-                id: 'AST001',
-                itemName: 'Road Construction Equipment',
-                oldQuantity: 5,
-                employeesUsing: 20,
-                newRequired: 3,
-                unitCost: 5000000,
-                totalCost: 15000000,
-                reason: 'Expansion of road network'
-            }
-        ]
+        id: 'EST007', budgetLineItemId: 'BL010', reviseEstimateCY: 45000, budgetEstimateNextYear: 52000,
+        forwardEstimateY2: 55000, percentageDeviation: 4.0,
+        status: 'under_approval', currentLevel: 'ddo_approver',
+        creatorRemarks: 'Minor increase for inflation adjustment',
+        verifierRemarks: 'Verified. Within normal inflation range.',
+        createdBy: 'U001', createdAt: '2024-12-05T11:00:00Z', submittedAt: '2024-12-05T17:00:00Z',
+        verifiedAt: '2024-12-06T10:00:00Z', exceedsCeiling: false
     }
 ];
+
 
 // Helper functions
 export function getBudgetLineItemById(id: string): BudgetLineItem | undefined {
@@ -301,32 +227,15 @@ export function getHistoricalDataByBudgetLineId(budgetLineItemId: string): Histo
 }
 
 export function getEstimationsByRole(role: string): EstimationRecord[] {
-    const levelMap: Record<string, string[]> = {
-        'ddo_creator': ['draft', 'returned'],
-        'ddo_verifier': ['under_verification'],
-        'ddo_approver': ['under_approval'],
-        'bco_creator': ['under_approval'],
-        'bco_verifier': ['under_verification'],
-        'bco_approver': ['under_approval']
-    };
-
     return MOCK_ESTIMATIONS.filter(est => {
-        if (role.startsWith('ddo')) {
-            return est.currentLevel.startsWith('ddo');
-        } else if (role.startsWith('bco')) {
-            return est.currentLevel.startsWith('bco');
-        }
+        if (role.startsWith('ddo')) return est.currentLevel.startsWith('ddo');
+        if (role.startsWith('bco')) return est.currentLevel.startsWith('bco');
         return false;
     });
 }
 
 export function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-IN', {
-        style: 'currency',
-        currency: 'INR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(amount);
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 }
 
 export function calculateTotalExpected(actual: number, projected: number): number {

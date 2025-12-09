@@ -2,6 +2,7 @@
 
 export interface BudgetLineItem {
     id: string;
+    srNo?: string;              // Serial number from JSON
     demandNo: string;
     majorHead: string;
     subMajorHead: string;
@@ -15,7 +16,21 @@ export interface BudgetLineItem {
     ddoCode: string;
     ddoName: string;
     ceilingLimit: number;
+    budgetHead?: string;               // Full budget head code
+    budgetEstimate?: number;           // Budget Estimate
+    budgetAllotment?: number;          // Budget Allotment
+    budgetReappropriation?: number;    // Budget Re-appropriation
+    budgetSurrender?: number;          // Budget Surrender
+    budgetDistribution?: number;       // Budget Distribution
+    remainingBudget?: number;          // Remaining Budget
+    expenditure?: number;              // Expenditure
+    hoaExpenditureLimit?: number;      // HOA Expenditure Limit
+    exempted?: boolean;                // Exempted (Y/N)
+    balanceBudgetBCO?: number;         // Balance Budget with BCO
+    balanceBudgetDDO?: number;         // Balance Budget with DDO
 }
+
+
 
 export interface HistoricalData {
     budgetLineItemId: string;
