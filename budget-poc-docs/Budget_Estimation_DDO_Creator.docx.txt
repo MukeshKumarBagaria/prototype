@@ -1,0 +1,997 @@
+﻿User Story: Budget Estimation – DDO Creator (Expenditure)
+User Story ID: BEL_BM_IFMIS_BE_EXP_DDO_CREATOR_01
+Module: Budget Management – Budget Estimation
+BEL Contact: Kamal Saryam, Shrikant Tirki, Gaurav Singh
+DTA SPOC: Ashish Nandanwar
+DTA Technical: Abhay Borikar
+
+
+1. User Story
+As a DDO Creator, I want to prepare and submit the Expenditure Budget Estimation so that
+* I can enter Revised Estimates (RE) for current year
+* I can enter Budget Estimates (BE) for next three years
+* I can view past expenditure data and system projections
+* I can submit my estimation to DDO Verifier for further review.
+* I can enter item-wise breakup for specific Detail Heads where breakup is required
+2. Pre-Conditions
+* Budget Module is activated for the Department.
+* Budget Line Items are mapped with the DDO by BCO.
+* Past 5 years actuals, previous RE, previous BE availability through integration with AG/Accounts systems.        
+* DDO employee details, designation, DDO code must exist in HRMS.
+* Mapping of Detail Heads requiring breakup must be maintained in Budget Master.
+* System must generate Medium-Term Estimates (MTE) for:
+   * Past 1 year (T–1)
+   * Current year (T)
+   * Next 2 years (T+1, T+2)
+Based on previous year submitted Rolling Budget
+3. Process Flow – DDO Creator
+   * Data Synchronization
+System fetches Employee → DDO → Department mapping from HRMS API.
+System retrieves:
+   * Budget lines assigned to the DDO
+   * Actual expenditure for last 5 years
+   * Previous year RE & BE
+   * System-forecasted RE & BE
+   * Medium-Term Estimates (MTE) for 3 years using rolling budget
+   * DDO Creator Actions
+Navigates to:
+Budget Estimation → Expenditure → Create
+   * Selects the Budget Line Item, system auto-populates:
+   * Demand No, Major, Sub-Major, Minor
+   * Segment, Scheme, Project
+   * Object Head, Detail Head
+   * Departmental Account details
+   * Past expenditure (5 years)
+   * Previous RE, Previous BE
+   * Current Year Actuals
+   * Projected expenditure for remaining period
+   * Enters Budget Values
+   * Revised Estimate (Current Year)
+   * Main Budget Estimate: Next Year (BE1)
+   * Next Year + 1 (BE2)
+   * Next Year + 2 (BE3)
+   * If the Detail Head requires Breakup → System shows "Breakup Details" section
+   * Breakup Required Detail Heads
+Detail Head Code
+	Description
+	22/002
+	Telephone Charges
+	22/003
+	Furniture
+	22/009
+	Department Vehicle Fuel
+	23/001
+	Purchase
+	27/001
+	IT Assets
+	31/007
+	Car Rental
+	
+
+   * DDO enters item wise breakup:
+   * Name of Item / Asset
+   * Description
+   * Old Available Quantity
+   * Number of Employees Using Asset
+   * New Required Quantity
+   * Per Unit Cost / Monthly Charge (depending on detail head)
+   * Total Cost (auto = Qty × Unit Cost)/Yearly Total
+   * Reason for New Purchase
+   * Remarks Entry
+   * DDO adds remarks for each budget line if needed
+   * Save Draft or Submit for Verification
+   * On submit → workflow moves to DDO Verifier
+4. Process Flow Diagram
+  
+5. Rule Management/Business Logic
+Rule ID
+	Rule Name
+	Category
+	Trigger / Event
+	Input Parameters / Data Fields
+	Logic / Formula / Condition
+	Effective From
+	Owner Department / Editable By
+	Parameter Name
+	Data Type
+	Value Range
+	Current Values
+	Source / Master Table
+	Remarks
+	RM_BE_01
+	Proposed RE Minimum Check
+	Validation
+	On entering Proposed RE
+	Proposed RE, Actual Expenditure Till Aug
+	RE must satisfy RE ≥ Actual Till Aug
+	FY 2025–26
+	Budget Module Admin
+	Minimum RE Rule
+	Numeric
+	≥ Actuals
+	Auto
+	Expenditure API
+	Ensures RE cannot be lower than actual expenditure
+	RM_BE_02
+	Total RE Auto Calculation
+	Calculation
+	On RE entry or projection update
+	Actual Till Aug, System Projection (Sep–Mar)
+	Total RE = Actual + Projected
+	FY 2025–26
+	Budget Module
+	Projection Factor
+	Numeric
+	System-generated
+	Dynamic
+	Projection Engine
+	Auto-calculated, non-editable
+	RM_BE_03
+	BE–MTE Deviation Calculation
+	Calculation
+	When BE1/BE2/BE3 is entered
+	BE1, BE2, BE3, Medium-Term Estimate (MTE)
+	Deviation = BE – MTE; Deviation % = (Deviation/MTE) × 100
+	FY 2025–26
+	Budget Module
+	MTE Reference
+	Numeric
+	N/A
+	Auto
+	MTE Engine
+	Used by Verifier/Approver for analysis
+	RM_BE_04
+	Mandatory Fields Validation
+	Validation
+	On Save / Submit
+	RE, BE1, BE2, BE3, Required Auto Fields
+	All mandatory numeric fields must be filled
+	FY 2025–26
+	Budget Module Admin
+	Mandatory Fields
+	Text
+	N/A
+	Configurable
+	UI Meta Table
+	No partial submission allowed
+	RM_BE_05
+	Past 5-Year Toggle Display Rule
+	UI Behavior
+	On Toggle Click
+	Toggle State: Show/Hide
+	If toggle ON → Show Table; OFF → Hide
+	Immediate
+	UI/UX Admin
+	Toggle Visibility
+	Boolean
+	ON/OFF
+	Default OFF
+	UI Configuration Table
+	Requested by customer to reduce clutter
+	RM_BE_06
+	Workflow Role Validation
+	Workflow
+	On Modify / Return / Approve
+	Role, Current Status
+	Only allowed role can perform an action
+	FY 2025–26
+	Workflow Admin
+	Workflow Matrix
+	Text
+	Valid Roles Only
+	Creator/Verifier/Approver
+	Workflow Master
+	Prevents unauthorized task execution
+	RM_BE_07
+	Detail Head Breakup Requirement
+	Business Rule
+	On selecting Budget Line Item
+	Detail Head Code
+	If DetailHead ∈ “BreakupRequiredMaster” → Show breakup table
+	FY 2025–26
+	Finance Department
+	Breakup Head List
+	Text
+	List of Detail Heads
+	If Detail Head Code is in the breakup-required list → System must display Item-wise Breakup Form.
+	Detail Head Master
+	New requirement added from user feedback
+	RM_BE_08
+	Breakup Total Cost Calculation
+	Calculation
+	On entering New Qty or Unit Cost
+	New Qty, Per Unit Cost
+	Total = Qty × Unit Cost
+	FY 2025–26
+	Budget Module
+	Cost Formula
+	Numeric
+	≥0
+	Auto
+	Breakup Entry
+	Used for justification logic
+	RM_BE_19
+	Auto-Save Draft Rule
+	System Behavior
+	On Data Entry Pause
+	Form Data
+	Auto-save draft every 30 sec
+	FY 2025–26
+	Application Admin
+	Auto-Save Frequency
+	Numeric (seconds)
+	10–300
+	Default 30 sec
+	UI Config Table
+	Prevents data loss
+	
+
+6. Acts, Rules & Circulars Referenced
+• Budget Manual of Madhya Pradesh (2012), Page 149, Point 12
+• Madhya Pradesh Financial Code, Volume–I, Page 362 of 378 – Annexure III: Reference Rules & Acts
+8. Acceptance Criteria
+• System must auto-fetch all budget line items mapped to the DDO after login.
+• DDO must enter Revised Estimate (RE) for current year, and RE cannot be less than the actual expenditure already incurred.
+• DDO must enter Budget Estimate (BE) for next 3 years.
+• System must display deviation (+ / –) between BE and Medium-Term Estimates automatically.
+• On submission, the estimation must move to the DDO Verifier.
+• The system should show a provision to enter breakup, and the DDO decides whether to enter it.
+• DDO must enter item/asset-level breakup for those heads.
+• If breakup is not required, the section should remain hidden.
+9. Internal Module Integration
+   * e-HRMIS
+   * Purchase Inventory
+   * Book Keeping & Asset Register
+10. External Module Integration
+Not Applicable
+11. Field Table
+Field Name
+	Description
+	UI Component
+	Field Type
+	Field Length
+	Mandatory (Y/N)
+	Validation Rule
+	Remarks
+	Demand No
+	Demand Number mapped to Budget Line
+	Display Field
+	Auto-Fetched
+	3 digits
+	Y
+	None
+	Fetched from HoA Master
+	Major Head
+	Major classification
+	Display Field
+	Auto-Fetched
+	4 digits
+	Y
+	None
+	Read-only
+	Sub Major Head
+	Sub-major classification
+	Display Field
+	Auto-Fetched
+	2 digits
+	Y
+	None
+	Read-only
+	Minor Head
+	Minor classification
+	Display Field
+	Auto-Fetched
+	3 digits
+	Y
+	None
+	Read-only
+	Segment Head
+	Segment code
+	Display Field
+	Auto-Fetched
+	4 digits
+	Y
+	None
+	Read-only
+	Scheme
+	Scheme mapped with budget line
+	Display Field
+	Auto-Fetched
+	N/A
+	Y
+	None
+	Read-only
+	Project
+	Project Code (if applicable)
+	Display Field
+	Auto-Fetched
+	N/A
+	N
+	None
+	Optional
+	Object Head
+	Accounting object head
+	Display Field
+	Auto-Fetched
+	2 digits
+	Y
+	None
+	Read-only
+	Detail Head
+	Detail object head
+	Display Field
+	Auto-Fetched
+	3 digits
+	Y
+	None
+	Read-only
+	Charged / Voted
+	Indicates nature of expenditure
+	Display Field
+	Auto-Fetched
+	N/A
+	Y
+	None
+	Read-only
+	Previous 5 Years Actuals
+	Prior year expenditure history
+	Table
+	Numeric
+	N/A
+	N
+	Auto-fetched numbers
+	Displayed on toggle
+	Previous Year BE
+	Last year Budget Estimate
+	Display Field
+	Numeric
+	N/A
+	N
+	None
+	For reference
+	Previous Year RE
+	Revised Estimate of last year
+	Display Field
+	Numeric
+	N/A
+	N
+	None
+	For trend analysis
+	Actual Expenditure Till Aug
+	Actual expenditure till cutoff month
+	Display Field
+	Numeric
+	N/A
+	Y
+	Cannot be modified
+	Integration data
+	System-Projected Expenditure (Sep–Mar)
+	System forecast
+	Display
+	Numeric
+	N/A
+	Y
+	None
+	Based on FRS
+	Proposed RE (Current Year)
+	Revised Estimate
+	Text Box
+	Numeric
+	15
+	Y
+	Must be ≥ Actuals
+	Can override
+	Total RE
+	RE Auto-Calculated
+	Display
+	Numeric
+	N/A
+	Y
+	RE = Actuals + Projected
+	System computed
+	BE for Next Year (BE1)
+	Budget Estimate
+	Text Box
+	Numeric
+	15
+	Y
+	Cannot be negative
+	Ceiling check
+	BE for Next Year +1 (BE2)
+	Medium-term estimate
+	Text Box
+	Numeric
+	15
+	Y
+	None
+	Required
+	BE for Next Year +2 (BE3)
+	Medium-term estimate
+	Text Box
+	Numeric
+	15
+	Y
+	None
+	Required
+	Deviation (Auto)
+	Difference from MTE
+	Display
+	Numeric
+	N/A
+	N
+	Auto-calculated
+	+ / – deviation
+	Deviation % (Auto)
+	% deviation from MTE
+	Display
+	Numeric
+	N/A
+	N
+	Auto-calculated
+	Indicator
+	DDO Remarks
+	General explanation
+	Text Area
+	Text
+	2000
+	N
+	None
+	Optional
+	Supporting Documents
+	Additional docs
+	File Upload
+	PDF/JPG
+	10MB
+	N
+	None
+	Optional
+	
+
+Fields for Telephone Connections(22/002)
+Field Name
+	Description
+	UI Component
+	Field Type
+	Length
+	Mandatory
+	Validation Rule
+	Remarks
+	DDO Code
+	DDO identifier
+	Display
+	Text
+	10
+	Y
+	Read-only
+	Auto-fetched
+	DDO Name
+	DDO name
+	Display
+	Text
+	100
+	Y
+	Read-only
+	Auto-fetched
+	Type of Telephone Connection
+	Mobile/Landline/Broadband
+	Dropdown
+	Enum
+	NA
+	Y
+	Must select one
+	Master maintained
+	Description
+	Short usage/purpose description
+	Text Box
+	String
+	300
+	N
+	—
+	Optional
+	Old Available Quantity
+	Existing active telephone connections
+	Number Input
+	Integer
+	5
+	Y
+	≥ 0
+	Fetched from backend; editable
+	Number of Employees Using Asset
+	Employees assigned telephone service
+	Number Input
+	Integer
+	5
+	N
+	≥ 0
+	Backend data; editable
+	New Required Quantity
+	Additional connections needed
+	Number Input
+	Integer
+	5
+	Y
+	≥ 0
+	DDO entry
+	Monthly Charge (₹)
+	Monthly tariff per connection
+	Number Input
+	Decimal
+	12
+	Y
+	> 0
+	Editable
+	Yearly Total (₹)
+	Auto yearly telephone cost
+	Display
+	Numeric
+	NA
+	Y
+	(Old + New Qty) × Monthly Charge × 12
+	Auto
+	Reason for New Purchase 
+	Justification
+	Text Area
+	Text
+	500
+	Y
+	Cannot be blank
+	Mandatory if New Qty > 0
+	
+
+Fields for Furniture Items(22/003)
+Field Name
+	Description
+	UI Component
+	Type
+	Len
+	Mandatory
+	Validation Rule
+	Remarks
+	DDO Code
+	Auto
+	Display
+	Text
+	10
+	Y
+	Read-only
+	Backend
+	DDO Name
+	Auto
+	Display
+	Text
+	100
+	Y
+	Read-only
+	Backend
+	Name of Furniture Item
+	Table/Chair/Almirah etc.
+	Text Box
+	Text
+	200
+	Y
+	No special chars
+	Master suggested
+	Description
+	Short usage/purpose description
+	Text Box
+	String
+	300
+	N
+	—
+	Optional
+	Old Available Quantity
+	Present usable items
+	Number Input
+	Integer
+	5
+	Y
+	≥ 0
+	Backend editable
+	Number of Employees Using Asset
+	Staff using items
+	Number Input
+	Integer
+	5
+	N
+	≥ 0
+	Optional
+	New Required Quantity
+	Additional items
+	Number Input
+	Integer
+	5
+	Y
+	≥ 0
+	DDO entry
+	Per Unit Cost (₹)
+	Purchase price per item
+	Number Input
+	Decimal
+	12
+	Y
+	> 0
+	Editable
+	Total Cost (₹)
+	Cost of new quantity
+	Display
+	Numeric
+	NA
+	Y
+	Qty × Unit Cost
+	Auto
+	Reason for New Purchase
+	Justification
+	Text Area
+	Text
+	500
+	Y
+	Must explain requirement
+	Mandatory
+	
+
+Fields for Departmental Vehicle Fuel(22/009)
+Field Name
+	Description
+	UI Component
+	Type
+	Len
+	Mandatory
+	Rule
+	Remarks
+	DDO Code
+	Auto
+	Display
+	Text
+	10
+	Y
+	Read-only
+	—
+	DDO Name
+	Auto
+	Display
+	Text
+	100
+	Y
+	Read-only
+	—
+	Type of Vehicle
+	Car/Jeep/Two Wheeler
+	Dropdown
+	Enum
+	NA
+	Y
+	Must select
+	For fuel mapping
+	Description
+	Short usage/purpose description
+	Text Box
+	String
+	300
+	N
+	—
+	Optional
+	Old Available Quantity
+	No. of vehicles currently in use
+	Number
+	Int
+	5
+	Y
+	≥ 0
+	Backend editable
+	Number of Employees Using Asset
+	Persons authorized
+	Number
+	Int
+	5
+	N
+	≥ 0
+	Optional
+	New Required Quantity
+	Additional vehicles needing fuel
+	Number
+	Int
+	5
+	Y
+	≥ 0
+	—
+	Monthly Fuel Cost (₹)
+	Average monthly fuel expense
+	Number
+	Decimal
+	12
+	Y
+	> 0
+	Editable
+	Yearly Total (₹)
+	Auto = Monthly Cost × 12 × Total Vehicles
+	Display
+	Numeric
+	NA
+	Y
+	System calculated
+	—
+	Reason for Additional Requirement
+	Justification
+	Text Area
+	
+
+	
+
+	Y
+	Mandatory
+	—
+	
+
+Fields for Purchase of Office Equipment (23/001)
+Field Name
+	Description
+	UI Component
+	Field Type
+	Length
+	Mandatory (Y/N)
+	Validation Rule
+	Remarks
+	DDO Code
+	Unique code of DDO
+	Display Field
+	Text
+	10
+	Y
+	Read-only
+	Auto-fetched
+	DDO Name
+	Name of DDO
+	Display Field
+	Text
+	100
+	Y
+	Read-only
+	Auto-fetched
+	Name of Office Equipment
+	Printer, Scanner, UPS, etc.
+	Text Box
+	String
+	200
+	Y
+	No special chars
+	Editable
+	Description
+	Short usage/purpose description
+	Text Box
+	String
+	300
+	N
+	—
+	Optional
+	Old Available Quantity
+	Existing working equipment quantity
+	Number Input
+	Integer
+	5
+	Y
+	≥ 0
+	Fetched from backend; editable
+	Number of Employees Using Asset
+	Employees dependent on this equipment
+	Number Input
+	Integer
+	5
+	N
+	≥ 0
+	Optional
+	New Required Quantity
+	Additional equipment required
+	Number Input
+	Integer
+	5
+	Y
+	≥ 0
+	Must be non-negative
+	Per Unit Cost (₹)
+	Cost per equipment item
+	Number Input
+	Decimal
+	12
+	Y
+	> 0
+	Editable by DDO
+	Total Cost (₹)
+	Auto = New Qty × Per Unit Cost
+	Display
+	Numeric
+	—
+	Y
+	Autocalculated
+	Read-only
+	Reason for New Purchase
+	Why new equipment is needed
+	Text Area
+	String
+	500
+	Y
+	Cannot be blank
+	Mandatory if New Qty > 0
+	
+
+Fields for IT Asset(27/001)
+Field Name
+	Description
+	UI Component
+	Field Type
+	Length
+	Mandatory
+	Validation Rule
+	Remarks
+	DDO Code
+	Auto-fetched DDO Code
+	Display
+	Text
+	10
+	Y
+	Read-only
+	From HRMS
+	DDO Name
+	Auto-fetched DDO Name
+	Display
+	Text
+	100
+	Y
+	Read-only
+	From HRMS
+	IT Asset Type
+	Desktop / Laptop / Printer / Scanner / Server
+	Dropdown
+	Enum
+	—
+	Y
+	Must select
+	Asset Master-driven
+	Description
+	Technical or usage description
+	Text Box
+	String
+	300
+	N
+	—
+	Optional
+	Old Available Quantity
+	Existing available IT assets
+	Number Input
+	Integer
+	5
+	Y
+	≥ 0
+	Backend value, editable
+	Number of Employees Using Asset
+	Users assigned asset
+	Number Input
+	Integer
+	5
+	N
+	≥ 0
+	Optional
+	New Required Quantity
+	New machines/devices required
+	Number Input
+	Integer
+	5
+	Y
+	≥ 0
+	DDO Entry
+	Per Unit Cost (₹)
+	Cost per device
+	Number Input
+	Decimal
+	12
+	Y
+	> 0
+	Editable
+	Total Cost (₹)
+	Auto = Qty × Unit Cost
+	Display
+	Numeric
+	—
+	Y
+	Auto
+	Read-only
+	Reason for New Purchase
+	Business/technical justification
+	Text Area
+	String
+	500
+	Y
+	Cannot be blank
+	Mandatory when New Qty > 0
+	
+
+Fields for Car Rental(31/007)
+Field Name
+	Description
+	UI Component
+	Field Type
+	Length
+	Mandatory
+	Validation Rule
+	Remarks
+	DDO Code
+	DDO Identifier
+	Display
+	Text
+	10
+	Y
+	Read-only
+	Auto
+	DDO Name
+	DDO Name
+	Display
+	Text
+	100
+	Y
+	Read-only
+	Auto
+	Type of Vehicle
+	Sedan/SUV/Hatchback rental type
+	Dropdown
+	Enum
+	—
+	Y
+	Must select
+	Rental Master
+	Description
+	Purpose of vehicle (inspection, official visits)
+	Text Box
+	String
+	300
+	N
+	—
+	Optional
+	Old Available Quantity
+	No. of rental cars currently used
+	Number Input
+	Integer
+	5
+	Y
+	≥ 0
+	Backend data
+	Number of Employees Using Asset
+	Officers using rental car service
+	Number Input
+	Integer
+	5
+	N
+	≥ 0
+	Optional
+	New Required Quantity
+	No. of additional rental cars required
+	Number Input
+	Integer
+	5
+	Y
+	≥ 0
+	—
+	Monthly Rental Charge (₹)
+	Monthly cost per car
+	Number Input
+	Decimal
+	12
+	Y
+	> 0
+	Editable
+	Yearly Total (₹)
+	Auto = (Old + New Qty) × Monthly Charge × 12
+	Display
+	Numeric
+	—
+	Y
+	Auto
+	Read-only
+	Reason for New Requirement
+	Justification for additional rental cars
+	Text Area
+	String
+	500
+	Y
+	Cannot be blank
+	Required when New Qty > 0
+	 
+12. Wireframe

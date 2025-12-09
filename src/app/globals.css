@@ -4,7 +4,7 @@
 
 
 :root {
-  /* GIGW Compliant Colors */
+  /* GIGW Compliant Colors - Enhanced Contrast */
   --background: 210 40% 98%;
   /* slate-50 */
   --foreground: 222 47% 11%;
@@ -16,25 +16,33 @@
   --popover: 0 0% 100%;
   --popover-foreground: 222 47% 11%;
 
-  --primary: 222 47% 11%;
-  /* Royal Blue (blue-900) equivalent for Shadcn */
-  --primary-foreground: 210 40% 98%;
+  /* Primary: Blue-800 for better contrast (8.6:1 ratio) */
+  --primary: 217 91% 30%;
+  --primary-foreground: 0 0% 100%;
 
   --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
+  --secondary-foreground: 222 47% 11%;
 
   --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
+  --muted-foreground: 215 25% 35%;
 
   --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
+  --accent-foreground: 222 47% 11%;
 
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive: 0 72% 45%;
+  --destructive-foreground: 0 0% 100%;
 
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 222.2 84% 4.9%;
+  /* GIGW Form Colors */
+  --success: 149 72% 30%;
+  --success-foreground: 0 0% 100%;
+  --warning: 38 92% 45%;
+  --warning-foreground: 0 0% 100%;
+  --info: 199 89% 40%;
+  --info-foreground: 0 0% 100%;
+
+  --border: 214 32% 85%;
+  --input: 214 32% 85%;
+  --ring: 217 91% 50%;
 
   --radius: 0.5rem;
 }

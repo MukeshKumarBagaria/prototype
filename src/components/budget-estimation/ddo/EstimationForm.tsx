@@ -10,9 +10,9 @@ import { HistoricalTrends } from '@/components/budget-estimation/shared/Historic
 import { EstimationInputs } from '@/components/budget-estimation/shared/EstimationInputs';
 import { RemarksSection } from '@/components/budget-estimation/shared/RemarksSection';
 import { OutcomeBudgetingSection } from '@/components/budget-estimation/shared/OutcomeBudgetingSection';
-import { AssetRequirementsTable } from '@/components/budget-estimation/shared/AssetRequirementsTable';
+import { CapitalRequirementsSection } from '@/components/budget-estimation/shared/CapitalRequirementsSection';
 import { CeilingExceedSection } from '@/components/budget-estimation/shared/CeilingExceedSection';
-import { EstimationRecord, AssetRequirement } from '@/data/budget-estimation/types';
+import { EstimationRecord, TypedAsset } from '@/data/budget-estimation/types';
 import {
     getBudgetLineItemById,
     getHistoricalDataByBudgetLineId,
@@ -48,8 +48,8 @@ export function EstimationForm({ estimationId, budgetLineItemId, initialData, mo
         // Ceiling exceed fields
         exceedJustification: initialData?.exceedJustification || '',
         exceedAttachment: initialData?.exceedAttachment || '',
-        // Assets
-        assets: initialData?.assets || [] as AssetRequirement[]
+        // Assets (typed for different categories)
+        typedAssets: [] as TypedAsset[]
     });
 
     const [saving, setSaving] = useState(false);
@@ -228,10 +228,10 @@ export function EstimationForm({ estimationId, budgetLineItemId, initialData, mo
                     onChange={(field, value) => setFormData(prev => ({ ...prev, [field]: value }))}
                 />
 
-                {/* Asset Requirements */}
-                <AssetRequirementsTable
-                    assets={formData.assets}
-                    onChange={(assets) => setFormData(prev => ({ ...prev, assets }))}
+                {/* Asset / Capital Requirements */}
+                <CapitalRequirementsSection
+                    assets={formData.typedAssets}
+                    onChange={(typedAssets) => setFormData(prev => ({ ...prev, typedAssets }))}
                 />
 
                 {/* Ceiling Exceed Section */}

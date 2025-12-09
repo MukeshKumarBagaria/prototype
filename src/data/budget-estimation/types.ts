@@ -73,6 +73,94 @@ export interface EstimationRecord {
     exceedAttachment?: string;
 }
 
+// Asset Category Types (Detail Head Codes requiring breakup)
+export type AssetCategory =
+    | 'telephone'      // 22/002 - Telephone Connections
+    | 'furniture'      // 22/003 - Furniture Items
+    | 'vehicleFuel'    // 22/009 - Departmental Vehicle Fuel
+    | 'officeEquipment'// 23/001 - Office Equipment
+    | 'itAsset'        // 27/001 - IT Assets
+    | 'carRental';     // 31/007 - Car Rental
+
+export const ASSET_CATEGORY_CONFIG: Record<AssetCategory, { code: string; label: string; description: string }> = {
+    telephone: { code: '22/002', label: 'Telephone Connections', description: 'Mobile, Landline, Broadband connections' },
+    furniture: { code: '22/003', label: 'Furniture Items', description: 'Tables, Chairs, Almirahs, etc.' },
+    vehicleFuel: { code: '22/009', label: 'Departmental Vehicle Fuel', description: 'Fuel expenses for department vehicles' },
+    officeEquipment: { code: '23/001', label: 'Office Equipment', description: 'Printers, Scanners, UPS, etc.' },
+    itAsset: { code: '27/001', label: 'IT Assets', description: 'Desktops, Laptops, Servers, etc.' },
+    carRental: { code: '31/007', label: 'Car Rental', description: 'Rental vehicles for official use' },
+};
+
+// Base asset interface with common fields
+interface BaseAsset {
+    id: string;
+    category: AssetCategory;
+    description?: string;
+    oldQuantity: number;
+    employeesUsing: number;
+    newRequired: number;
+    reason: string;
+    remarks?: string;
+}
+
+// 22/002 - Telephone Connections
+export interface TelephoneAsset extends BaseAsset {
+    category: 'telephone';
+    connectionType: 'Mobile' | 'Landline' | 'Broadband';
+    monthlyCharge: number;
+    yearlyTotal: number; // Auto: (oldQty + newQty) × monthlyCharge × 12
+}
+
+// 22/003 - Furniture Items
+export interface FurnitureAsset extends BaseAsset {
+    category: 'furniture';
+    itemName: string; // Table, Chair, Almirah, etc.
+    perUnitCost: number;
+    totalCost: number; // Auto: newRequired × perUnitCost
+}
+
+// 22/009 - Departmental Vehicle Fuel
+export interface VehicleFuelAsset extends BaseAsset {
+    category: 'vehicleFuel';
+    vehicleType: 'Car' | 'Jeep' | 'Two Wheeler';
+    monthlyFuelCost: number;
+    yearlyTotal: number; // Auto: monthlyFuelCost × 12 × (oldQty + newQty)
+}
+
+// 23/001 - Office Equipment
+export interface OfficeEquipmentAsset extends BaseAsset {
+    category: 'officeEquipment';
+    equipmentName: string; // Printer, Scanner, UPS, etc.
+    perUnitCost: number;
+    totalCost: number; // Auto: newRequired × perUnitCost
+}
+
+// 27/001 - IT Assets
+export interface ITAssetItem extends BaseAsset {
+    category: 'itAsset';
+    assetType: 'Desktop' | 'Laptop' | 'Printer' | 'Scanner' | 'Server';
+    perUnitCost: number;
+    totalCost: number; // Auto: newRequired × perUnitCost
+}
+
+// 31/007 - Car Rental
+export interface CarRentalAsset extends BaseAsset {
+    category: 'carRental';
+    vehicleType: 'Sedan' | 'SUV' | 'Hatchback';
+    monthlyRentalCharge: number;
+    yearlyTotal: number; // Auto: (oldQty + newQty) × monthlyRentalCharge × 12
+}
+
+// Union type for all asset types
+export type TypedAsset =
+    | TelephoneAsset
+    | FurnitureAsset
+    | VehicleFuelAsset
+    | OfficeEquipmentAsset
+    | ITAssetItem
+    | CarRentalAsset;
+
+// Legacy interface for backward compatibility
 export interface AssetRequirement {
     id: string;
     itemName: string;
