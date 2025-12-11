@@ -246,3 +246,235 @@ export function calculatePercentageDeviation(be: number, re: number): number {
     if (re === 0) return 0;
     return ((be - re) / re) * 100;
 }
+
+// Mock Audit Trail Data
+import { AuditTrailEntry } from './types';
+
+export const MOCK_AUDIT_TRAIL: AuditTrailEntry[] = [
+    // Budget Line BL001 - Full workflow with detailed changes
+    {
+        id: 'audit-001-1',
+        budgetLineItemId: 'BL001',
+        timestamp: '2024-12-01T09:30:00Z',
+        action: 'created',
+        performedBy: { userId: 'U001', name: 'Rajesh Kumar', role: 'ddo_creator', designation: 'Assistant Director' },
+        level: 'DDO',
+        changes: [
+            { field: 'reviseEstimateCY', fieldLabel: 'Proposed RE', oldValue: null, newValue: 450000 },
+            { field: 'budgetEstimateNextYear', fieldLabel: 'Next Year BE', oldValue: null, newValue: 500000 },
+            { field: 'forwardEstimateY2', fieldLabel: 'Forward Est (Y+2)', oldValue: null, newValue: 520000 },
+        ],
+        remarks: 'Initial estimation created based on previous year expenditure patterns'
+    },
+    {
+        id: 'audit-001-2',
+        budgetLineItemId: 'BL001',
+        timestamp: '2024-12-02T10:15:00Z',
+        action: 'submitted',
+        performedBy: { userId: 'U001', name: 'Rajesh Kumar', role: 'ddo_creator', designation: 'Assistant Director' },
+        level: 'DDO',
+        remarks: 'Submitted for verification by DDO Verifier'
+    },
+    {
+        id: 'audit-001-3',
+        budgetLineItemId: 'BL001',
+        timestamp: '2024-12-03T14:20:00Z',
+        action: 'modified',
+        performedBy: { userId: 'U002', name: 'Priya Sharma', role: 'ddo_verifier', designation: 'Deputy Director' },
+        level: 'DDO',
+        changes: [
+            { field: 'budgetEstimateNextYear', fieldLabel: 'Next Year BE', oldValue: 500000, newValue: 520000 },
+            { field: 'forwardEstimateY2', fieldLabel: 'Forward Est (Y+2)', oldValue: 520000, newValue: 550000 },
+            { field: 'forwardEstimateY3', fieldLabel: 'Forward Est (Y+3)', oldValue: 0, newValue: 580000 },
+        ],
+        remarks: 'Adjusted estimates based on projected inflation rate of 4% per annum'
+    },
+    {
+        id: 'audit-001-4',
+        budgetLineItemId: 'BL001',
+        timestamp: '2024-12-03T15:00:00Z',
+        action: 'verified',
+        performedBy: { userId: 'U002', name: 'Priya Sharma', role: 'ddo_verifier', designation: 'Deputy Director' },
+        level: 'DDO',
+        remarks: 'Verified and forwarded to DDO Approver for final approval'
+    },
+    {
+        id: 'audit-001-5',
+        budgetLineItemId: 'BL001',
+        timestamp: '2024-12-05T11:30:00Z',
+        action: 'approved',
+        performedBy: { userId: 'U003', name: 'Amit Verma', role: 'ddo_approver', designation: 'Director' },
+        level: 'DDO',
+        remarks: 'Approved at DDO level. Forwarded to BCO for consolidation.'
+    },
+    {
+        id: 'audit-001-6',
+        budgetLineItemId: 'BL001',
+        timestamp: '2024-12-07T09:00:00Z',
+        action: 'modified',
+        performedBy: { userId: 'U004', name: 'Sunita Patel', role: 'bco_creator', designation: 'Budget Officer' },
+        level: 'BCO',
+        changes: [
+            { field: 'budgetEstimateNextYear', fieldLabel: 'Next Year BE', oldValue: 520000, newValue: 515000 },
+        ],
+        remarks: 'Aligned with departmental ceiling limits as per BCO guidelines'
+    },
+    {
+        id: 'audit-001-7',
+        budgetLineItemId: 'BL001',
+        timestamp: '2024-12-08T14:45:00Z',
+        action: 'verified',
+        performedBy: { userId: 'U005', name: 'Vikram Singh', role: 'bco_verifier', designation: 'Senior Budget Officer' },
+        level: 'BCO',
+        remarks: 'Verified at BCO level. Ready for BCO Approver review.'
+    },
+    {
+        id: 'audit-001-8',
+        budgetLineItemId: 'BL001',
+        timestamp: '2024-12-09T16:00:00Z',
+        action: 'approved',
+        performedBy: { userId: 'U006', name: 'Meera Joshi', role: 'bco_approver', designation: 'Chief Budget Controller' },
+        level: 'BCO',
+        remarks: 'Final approval at BCO level. Budget line ready for consolidation.'
+    },
+
+    // Budget Line BL002 - Returned workflow with corrections
+    {
+        id: 'audit-002-1',
+        budgetLineItemId: 'BL002',
+        timestamp: '2024-12-01T10:00:00Z',
+        action: 'created',
+        performedBy: { userId: 'U001', name: 'Rajesh Kumar', role: 'ddo_creator', designation: 'Assistant Director' },
+        level: 'DDO',
+        changes: [
+            { field: 'reviseEstimateCY', fieldLabel: 'Proposed RE', oldValue: null, newValue: 240000000 },
+            { field: 'budgetEstimateNextYear', fieldLabel: 'Next Year BE', oldValue: null, newValue: 270000000 },
+        ],
+        remarks: 'Created estimation for salaries head with 12% increase'
+    },
+    {
+        id: 'audit-002-2',
+        budgetLineItemId: 'BL002',
+        timestamp: '2024-12-02T11:00:00Z',
+        action: 'submitted',
+        performedBy: { userId: 'U001', name: 'Rajesh Kumar', role: 'ddo_creator', designation: 'Assistant Director' },
+        level: 'DDO',
+        remarks: 'Submitted for verification'
+    },
+    {
+        id: 'audit-002-3',
+        budgetLineItemId: 'BL002',
+        timestamp: '2024-12-03T16:30:00Z',
+        action: 'returned',
+        performedBy: { userId: 'U002', name: 'Priya Sharma', role: 'ddo_verifier', designation: 'Deputy Director' },
+        level: 'DDO',
+        remarks: 'RETURNED: Proposed 12% increase exceeds ceiling limit. Please provide detailed justification or revise estimates within 8% ceiling.'
+    },
+    {
+        id: 'audit-002-4',
+        budgetLineItemId: 'BL002',
+        timestamp: '2024-12-04T09:30:00Z',
+        action: 'modified',
+        performedBy: { userId: 'U001', name: 'Rajesh Kumar', role: 'ddo_creator', designation: 'Assistant Director' },
+        level: 'DDO',
+        changes: [
+            { field: 'budgetEstimateNextYear', fieldLabel: 'Next Year BE', oldValue: 270000000, newValue: 255000000 },
+            { field: 'creatorRemarks', fieldLabel: 'Justification', oldValue: '', newValue: 'Revised to 6% increase. Additional requirement of 2 new posts as per approved sanction order dated 15/11/2024.' },
+        ],
+        remarks: 'Revised estimates as per verifier feedback with proper justification'
+    },
+    {
+        id: 'audit-002-5',
+        budgetLineItemId: 'BL002',
+        timestamp: '2024-12-04T10:00:00Z',
+        action: 'submitted',
+        performedBy: { userId: 'U001', name: 'Rajesh Kumar', role: 'ddo_creator', designation: 'Assistant Director' },
+        level: 'DDO',
+        remarks: 'Re-submitted after revising estimates within ceiling limits'
+    },
+    {
+        id: 'audit-002-6',
+        budgetLineItemId: 'BL002',
+        timestamp: '2024-12-05T11:00:00Z',
+        action: 'verified',
+        performedBy: { userId: 'U002', name: 'Priya Sharma', role: 'ddo_verifier', designation: 'Deputy Director' },
+        level: 'DDO',
+        remarks: 'Justification accepted. Verified and forwarded to approver.'
+    },
+
+    // Budget Line BL003 - Simple workflow
+    {
+        id: 'audit-003-1',
+        budgetLineItemId: 'BL003',
+        timestamp: '2024-12-02T09:00:00Z',
+        action: 'created',
+        performedBy: { userId: 'U001', name: 'Rajesh Kumar', role: 'ddo_creator', designation: 'Assistant Director' },
+        level: 'DDO',
+        changes: [
+            { field: 'reviseEstimateCY', fieldLabel: 'Proposed RE', oldValue: null, newValue: 159360000 },
+            { field: 'budgetEstimateNextYear', fieldLabel: 'Next Year BE', oldValue: null, newValue: 165000000 },
+        ],
+        remarks: 'Allowances head - based on current sanctioned strength'
+    },
+    {
+        id: 'audit-003-2',
+        budgetLineItemId: 'BL003',
+        timestamp: '2024-12-03T10:30:00Z',
+        action: 'submitted',
+        performedBy: { userId: 'U001', name: 'Rajesh Kumar', role: 'ddo_creator', designation: 'Assistant Director' },
+        level: 'DDO'
+    },
+
+    // Budget Line BL004 - Under review
+    {
+        id: 'audit-004-1',
+        budgetLineItemId: 'BL004',
+        timestamp: '2024-12-03T11:00:00Z',
+        action: 'created',
+        performedBy: { userId: 'U001', name: 'Rajesh Kumar', role: 'ddo_creator', designation: 'Assistant Director' },
+        level: 'DDO',
+        changes: [
+            { field: 'reviseEstimateCY', fieldLabel: 'Proposed RE', oldValue: null, newValue: 2784000 },
+            { field: 'budgetEstimateNextYear', fieldLabel: 'Next Year BE', oldValue: null, newValue: 2900000 },
+        ]
+    },
+];
+
+// Generate audit trail for remaining budget lines (BL005 to BL066)
+for (let i = 5; i <= 66; i++) {
+    const blId = `BL${String(i).padStart(3, '0')}`;
+    const baseDate = new Date(2024, 11, 1 + (i % 10));
+
+    MOCK_AUDIT_TRAIL.push({
+        id: `audit-${blId}-1`,
+        budgetLineItemId: blId,
+        timestamp: baseDate.toISOString(),
+        action: 'created',
+        performedBy: { userId: 'U001', name: 'Rajesh Kumar', role: 'ddo_creator', designation: 'Assistant Director' },
+        level: 'DDO',
+        changes: [
+            { field: 'reviseEstimateCY', fieldLabel: 'Proposed RE', oldValue: null, newValue: Math.floor(Math.random() * 10000000) + 100000 },
+            { field: 'budgetEstimateNextYear', fieldLabel: 'Next Year BE', oldValue: null, newValue: Math.floor(Math.random() * 10000000) + 100000 },
+        ],
+        remarks: 'Initial budget estimation created'
+    });
+
+    if (i % 3 === 0) {
+        const submitDate = new Date(baseDate);
+        submitDate.setDate(submitDate.getDate() + 1);
+        MOCK_AUDIT_TRAIL.push({
+            id: `audit-${blId}-2`,
+            budgetLineItemId: blId,
+            timestamp: submitDate.toISOString(),
+            action: 'submitted',
+            performedBy: { userId: 'U001', name: 'Rajesh Kumar', role: 'ddo_creator', designation: 'Assistant Director' },
+            level: 'DDO',
+            remarks: 'Submitted for verification'
+        });
+    }
+}
+
+export function getAuditTrailByBudgetLineId(budgetLineItemId: string): AuditTrailEntry[] {
+    return MOCK_AUDIT_TRAIL.filter(entry => entry.budgetLineItemId === budgetLineItemId);
+}
+

@@ -1,0 +1,659 @@
+'use client';
+
+import React, { useState, useMemo } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+    ArrowLeft, Save, Send, Search, Filter, Clock, CheckCircle2, AlertCircle,
+    TrendingUp, TrendingDown, Layers, Check, ChevronDown, ChevronUp, Target,
+    FileText, AlertTriangle, Sparkles, Package, History
+} from 'lucide-react';
+import { BudgetLineItem, EstimationRecord, TypedAsset, AuditTrailEntry } from '@/data/budget-estimation/types';
+import { formatCurrency, MOCK_HISTORICAL_DATA, getAuditTrailByBudgetLineId, MOCK_AUDIT_TRAIL } from '@/data/budget-estimation/mockData';
+import { useRouter } from 'next/navigation';
+import { BreakupModal, BREAKUP_REQUIRED_HEADS, BreakupItem } from './BreakupModal';
+import { TrendAnalysisPopup } from './TrendAnalysisPopup';
+import { AssetRequirementsModal } from './AssetRequirementsModal';
+import { AuditTrailModal } from './AuditTrailModal';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+
+// Constants for dropdowns
+const OUTCOME_CATEGORIES = ['Development', 'Non-Development', 'Administrative'];
+const SDG_GOALS = ['1 - No Poverty', '2 - Zero Hunger', '3 - Good Health', '4 - Quality Education', '5 - Gender Equality', '8 - Economic Growth'];
+const SDG_TARGETS = ['1.1', '1.2', '2.1', '3.1', '4.1', '5.1', '8.1'];
+const GENDER_TAGS = ['General', 'Women Specific', 'Gender Neutral'];
+const GEOGRAPHY_TAGS = ['Urban', 'Rural', 'Semi-Urban', 'Pan-India'];
+
+interface SmartBudgetGridProps {
+    role: 'creator' | 'verifier' | 'approver';
+    items: BudgetLineItem[];
+    estimations: EstimationRecord[];
+    onSave?: (data: any) => void;
+    onSubmit?: (data: any) => void;
+    summaryCards?: React.ReactNode;
+}
+
+interface ItemFormData {
+    reviseEstimateCY: number;
+    budgetEstimateNextYear: number;
+    forwardEstimateY2: number;
+    forwardEstimateY3: number;
+    creatorRemarks: string;
+    outcomeCategory: string;
+    sdgGoal: string;
+    sdgTarget: string;
+    genderTag: string;
+    scstTag: boolean;
+    geographyTag: string;
+}
+
+export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridProps) {
+    const router = useRouter();
+    const [formData, setFormData] = useState<Record<string, ItemFormData>>({});
+    const [searchQuery, setSearchQuery] = useState('');
+    const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+    const [breakupModalOpen, setBreakupModalOpen] = useState(false);
+    const [activeBreakupLine, setActiveBreakupLine] = useState<BudgetLineItem | null>(null);
+    const [breakupData, setBreakupData] = useState<Record<string, BreakupItem[]>>({});
+    const [savedItems, setSavedItems] = useState<Set<string>>(new Set());
+    const [submittedItems, setSubmittedItems] = useState<Set<string>>(new Set());
+    const [assetModalOpen, setAssetModalOpen] = useState(false);
+    const [activeAssetLine, setActiveAssetLine] = useState<BudgetLineItem | null>(null);
+    const [assetData, setAssetData] = useState<Record<string, TypedAsset[]>>({});
+    const [auditModalOpen, setAuditModalOpen] = useState(false);
+    const [activeAuditLine, setActiveAuditLine] = useState<BudgetLineItem | null>(null);
+
+    const getItemFormData = (itemId: string): ItemFormData => {
+        if (formData[itemId]) return formData[itemId];
+        const est = estimations.find(e => e.budgetLineItemId === itemId);
+        return {
+            reviseEstimateCY: est?.reviseEstimateCY || 0,
+            budgetEstimateNextYear: est?.budgetEstimateNextYear || 0,
+            forwardEstimateY2: est?.forwardEstimateY2 || 0,
+            forwardEstimateY3: est?.forwardEstimateY3 || 0,
+            creatorRemarks: est?.creatorRemarks || '',
+            outcomeCategory: est?.outcomeCategory || '',
+            sdgGoal: est?.sdgGoal || '',
+            sdgTarget: est?.sdgTarget || '',
+            genderTag: est?.genderTag || 'General',
+            scstTag: est?.scstTag || false,
+            geographyTag: est?.geographyTag || '',
+        };
+    };
+
+    const updateFormData = (itemId: string, field: keyof ItemFormData, value: any) => {
+        setFormData(prev => ({
+            ...prev,
+            [itemId]: {
+                ...getItemFormData(itemId),
+                [field]: value
+            }
+        }));
+        setSavedItems(prev => {
+            const next = new Set(prev);
+            next.delete(itemId);
+            return next;
+        });
+    };
+
+    const toggleExpand = (itemId: string) => {
+        setExpandedItems(prev => {
+            const next = new Set(prev);
+            if (next.has(itemId)) {
+                next.delete(itemId);
+            } else {
+                next.add(itemId);
+            }
+            return next;
+        });
+    };
+
+    const handleBreakupClick = (item: BudgetLineItem) => {
+        setActiveBreakupLine(item);
+        setBreakupModalOpen(true);
+    };
+
+    const handleBreakupSave = (items: BreakupItem[]) => {
+        if (activeBreakupLine) {
+            setBreakupData(prev => ({
+                ...prev,
+                [activeBreakupLine.id]: items
+            }));
+        }
+    };
+
+    const handleSaveItem = (id: string, scheme: string) => {
+        setSavedItems(prev => new Set(prev).add(id));
+        toast.success(`Draft Saved`, {
+            description: scheme.substring(0, 50) + (scheme.length > 50 ? '...' : '')
+        });
+    };
+
+    const handleSubmitItem = (id: string, scheme: string) => {
+        setSubmittedItems(prev => new Set(prev).add(id));
+        const action = role === 'creator' ? 'Sent to Verifier' : role === 'verifier' ? 'Sent to Approver' : 'Approved';
+        toast.success(action, {
+            description: scheme.substring(0, 50) + (scheme.length > 50 ? '...' : '')
+        });
+    };
+
+    const handleAssetClick = (item: BudgetLineItem) => {
+        setActiveAssetLine(item);
+        setAssetModalOpen(true);
+    };
+
+    const handleAssetSave = (assets: TypedAsset[]) => {
+        if (activeAssetLine) {
+            setAssetData(prev => ({
+                ...prev,
+                [activeAssetLine.id]: assets
+            }));
+            toast.success('Asset requirements saved', {
+                description: `${assets.length} items added`
+            });
+        }
+    };
+
+    const handleAuditClick = (item: BudgetLineItem) => {
+        setActiveAuditLine(item);
+        setAuditModalOpen(true);
+    };
+
+    const getStatusInfo = (status?: string, itemId?: string) => {
+        if (submittedItems.has(itemId || '')) {
+            return { label: 'Submitted', color: 'bg-emerald-500', icon: Check };
+        }
+        if (savedItems.has(itemId || '')) {
+            return { label: 'Saved', color: 'bg-sky-500', icon: Save };
+        }
+        switch (status) {
+            case 'approved': return { label: 'Approved', color: 'bg-emerald-500', icon: CheckCircle2 };
+            case 'returned': return { label: 'Returned', color: 'bg-amber-500', icon: AlertCircle };
+            case 'under_verification': return { label: 'Under Review', color: 'bg-violet-500', icon: Clock };
+            case 'under_approval': return { label: 'Under Approval', color: 'bg-blue-500', icon: Clock };
+            default: return { label: 'Draft', color: 'bg-slate-400', icon: FileText };
+        }
+    };
+
+    const filteredItems = useMemo(() => {
+        return items.filter(item => {
+            const est = estimations.find(e => e.budgetLineItemId === item.id);
+            const matchesSearch = item.scheme.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.budgetHead?.includes(searchQuery) ||
+                item.objectHead.includes(searchQuery);
+            const matchesStatus = statusFilter === 'all' || est?.status === statusFilter;
+            return matchesSearch && matchesStatus;
+        });
+    }, [items, estimations, searchQuery, statusFilter]);
+
+    const completedCount = savedItems.size + submittedItems.size;
+    const pendingCount = items.length - completedCount;
+    const totalProposedRE = items.reduce((acc, item) => {
+        const data = getItemFormData(item.id);
+        return acc + (data.reviseEstimateCY || 0);
+    }, 0);
+
+    return (
+        <div className="h-screen flex flex-col bg-slate-50">
+            {/* Fixed Header Section */}
+            <header className="flex-shrink-0 bg-slate-50 px-4 pt-4">
+                <div className="max-w-[1400px] mx-auto">
+                    {/* Summary Strip */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-8">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                                        <Clock className="text-amber-600" size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-500 uppercase font-medium">Pending</p>
+                                        <p className="text-xl font-bold text-slate-900">{pendingCount}</p>
+                                    </div>
+                                </div>
+                                <div className="w-px h-10 bg-slate-200" />
+                                <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                                        <CheckCircle2 className="text-emerald-600" size={20} />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-slate-500 uppercase font-medium">Completed</p>
+                                        <p className="text-xl font-bold text-slate-900">{completedCount}</p>
+                                    </div>
+                                </div>
+                                <div className="w-px h-10 bg-slate-200" />
+                                <div>
+                                    <p className="text-xs text-slate-500 uppercase font-medium">Total Proposed RE</p>
+                                    <p className="text-xl font-bold text-blue-600 font-mono">{formatCurrency(totalProposedRE)}</p>
+                                </div>
+                            </div>
+                            <Button
+                                variant="outline"
+                                className="gap-2"
+                                onClick={() => router.back()}
+                            >
+                                <ArrowLeft size={16} /> Back to Dashboard
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Search & Filter - Fixed */}
+                    <div className="flex items-center gap-3 pb-4">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                            <Input
+                                placeholder="Search by scheme or DDO code..."
+                                className="pl-11 h-12 bg-white border-slate-200 rounded-lg text-base"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <SelectTrigger className="w-auto h-12 px-4 bg-white border-slate-200 rounded-lg gap-2">
+                                <Filter size={16} className="text-slate-500" />
+                                <span className="text-slate-700">Filter</span>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Status</SelectItem>
+                                <SelectItem value="draft">Drafts</SelectItem>
+                                <SelectItem value="under_verification">Under Review</SelectItem>
+                                <SelectItem value="approved">Approved</SelectItem>
+                                <SelectItem value="returned">Returned</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+            </header>
+
+            {/* Scrollable Content */}
+            <main className="flex-1 overflow-y-auto px-4 pb-6">
+                <div className="max-w-[1400px] mx-auto">
+                    {/* Budget Line Cards */}
+                    <div className="space-y-4">
+                        {activeBreakupLine && (
+                            <BreakupModal
+                                budgetLine={activeBreakupLine}
+                                isOpen={breakupModalOpen}
+                                onOpenChange={setBreakupModalOpen}
+                                onSave={handleBreakupSave}
+                                initialData={breakupData[activeBreakupLine.id]}
+                                isReadOnly={false}
+                            />
+                        )}
+
+                        {activeAssetLine && (
+                            <AssetRequirementsModal
+                                isOpen={assetModalOpen}
+                                onOpenChange={setAssetModalOpen}
+                                assets={assetData[activeAssetLine.id] || []}
+                                onSave={handleAssetSave}
+                                disabled={submittedItems.has(activeAssetLine.id)}
+                            />
+                        )}
+
+                        {activeAuditLine && (
+                            <AuditTrailModal
+                                isOpen={auditModalOpen}
+                                onOpenChange={setAuditModalOpen}
+                                budgetLine={activeAuditLine}
+                                auditTrail={getAuditTrailByBudgetLineId(activeAuditLine.id)}
+                            />
+                        )}
+
+                        {filteredItems.map((item) => {
+                            const est = estimations.find(e => e.budgetLineItemId === item.id);
+                            const history = MOCK_HISTORICAL_DATA.find(h => h.budgetLineItemId === item.id);
+                            const data = getItemFormData(item.id);
+                            const isExpanded = expandedItems.has(item.id);
+                            const statusInfo = getStatusInfo(est?.status, item.id);
+                            const isSubmitted = submittedItems.has(item.id);
+                            const needsBreakup = BREAKUP_REQUIRED_HEADS.some(head => item.detailHead.includes(head.split('/')[1]));
+
+                            // Calculate deviation
+                            const deviation = data.budgetEstimateNextYear > 0 && data.reviseEstimateCY > 0
+                                ? ((data.budgetEstimateNextYear - data.reviseEstimateCY) / data.reviseEstimateCY * 100).toFixed(1)
+                                : null;
+                            const exceedsCeiling = data.budgetEstimateNextYear > (item.ceilingLimit || 0);
+
+                            return (
+                                <Card key={item.id} className={cn(
+                                    "bg-white shadow-sm overflow-hidden transition-all duration-300",
+                                    "border hover:shadow-md",
+                                    isSubmitted ? "border-l-4 border-l-emerald-500 bg-emerald-50/30" : "border-slate-200"
+                                )}>
+                                    <CardContent className="p-0">
+                                        {/* Header */}
+                                        <div className="px-5 py-4 border-b border-slate-100">
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <span className={cn("inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold text-white", statusInfo.color)}>
+                                                            <statusInfo.icon size={12} />
+                                                            {statusInfo.label}
+                                                        </span>
+                                                        <code className="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                                                            {item.budgetHead}
+                                                        </code>
+                                                        <span className={cn(
+                                                            "text-xs font-bold px-2 py-0.5 rounded",
+                                                            item.chargedOrVoted === 'Charged' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-600'
+                                                        )}>
+                                                            {item.chargedOrVoted}
+                                                        </span>
+                                                    </div>
+                                                    <h3 className="font-semibold text-slate-900 text-base leading-snug">
+                                                        {item.scheme}
+                                                    </h3>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <TrendAnalysisPopup budgetLine={item} history={history} />
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => toggleExpand(item.id)}
+                                                        className="text-slate-500"
+                                                    >
+                                                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Main Estimation Grid */}
+                                        <div className="px-5 py-4 bg-slate-50/50">
+                                            {/* Data Row */}
+                                            <div className="grid grid-cols-8 gap-3 items-end">
+                                                {/* Historical Values */}
+                                                <div>
+                                                    <Label className="text-xs text-slate-500 mb-1 block">Prev Year BE</Label>
+                                                    <p className="text-sm font-semibold text-slate-600 font-mono">{formatCurrency(history?.fy1 || 0)}</p>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-xs text-slate-500 mb-1 block">Prev Year RE</Label>
+                                                    <p className="text-sm font-semibold text-slate-600 font-mono">{formatCurrency(history?.currentYearBE || 0)}</p>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-xs text-slate-500 mb-1 block">Actuals (YTD)</Label>
+                                                    <p className="text-sm font-semibold text-slate-700 font-mono">{formatCurrency(history?.actualTillDate || 0)}</p>
+                                                </div>
+
+                                                {/* Editable Fields */}
+                                                <div>
+                                                    <Label className="text-xs text-blue-600 font-semibold mb-1 block">Proposed RE *</Label>
+                                                    <Input
+                                                        type="number"
+                                                        value={data.reviseEstimateCY || ''}
+                                                        onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', parseFloat(e.target.value) || 0)}
+                                                        placeholder="0"
+                                                        disabled={isSubmitted}
+                                                        className="h-10 font-mono text-sm border-blue-200 focus:border-blue-400 bg-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label className="text-xs text-blue-600 font-semibold mb-1 block">Next Year BE *</Label>
+                                                    <Input
+                                                        type="number"
+                                                        value={data.budgetEstimateNextYear || ''}
+                                                        onChange={(e) => updateFormData(item.id, 'budgetEstimateNextYear', parseFloat(e.target.value) || 0)}
+                                                        placeholder="0"
+                                                        disabled={isSubmitted}
+                                                        className="h-10 font-mono text-sm border-blue-200 focus:border-blue-400 bg-white"
+                                                    />
+                                                </div>
+
+                                                {/* Forward Estimates */}
+                                                <div>
+                                                    <Label className="text-xs text-purple-600 font-semibold mb-1 block">Forward Est (Y+2)</Label>
+                                                    <Input
+                                                        type="number"
+                                                        value={data.forwardEstimateY2 || ''}
+                                                        onChange={(e) => updateFormData(item.id, 'forwardEstimateY2', parseFloat(e.target.value) || 0)}
+                                                        placeholder="0"
+                                                        disabled={isSubmitted}
+                                                        className="h-10 font-mono text-sm border-purple-200 focus:border-purple-400 bg-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <Label className="text-xs text-purple-600 font-semibold mb-1 block">Forward Est (Y+3)</Label>
+                                                    <Input
+                                                        type="number"
+                                                        value={data.forwardEstimateY3 || ''}
+                                                        onChange={(e) => updateFormData(item.id, 'forwardEstimateY3', parseFloat(e.target.value) || 0)}
+                                                        placeholder="0"
+                                                        disabled={isSubmitted}
+                                                        className="h-10 font-mono text-sm border-purple-200 focus:border-purple-400 bg-white"
+                                                    />
+                                                </div>
+
+                                                {/* Deviation Indicator */}
+                                                <div>
+                                                    <Label className="text-xs text-slate-500 mb-1 block">Deviation</Label>
+                                                    {deviation ? (
+                                                        <div className={cn(
+                                                            "h-10 flex items-center gap-1 text-sm font-semibold rounded px-2",
+                                                            parseFloat(deviation) > 0 ? "text-emerald-600 bg-emerald-50" : "text-red-600 bg-red-50"
+                                                        )}>
+                                                            {parseFloat(deviation) > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+                                                            {Math.abs(parseFloat(deviation))}%
+                                                        </div>
+                                                    ) : (
+                                                        <div className="h-10 flex items-center text-sm text-slate-400">—</div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Actions Row - Separate line */}
+                                            <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-slate-200">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-9 gap-2 border-slate-300 text-slate-600 hover:bg-slate-50"
+                                                    onClick={() => handleAuditClick(item)}
+                                                >
+                                                    <History size={14} />
+                                                    Audit Trail
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-9 gap-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                                                    onClick={() => handleAssetClick(item)}
+                                                    disabled={isSubmitted}
+                                                >
+                                                    <Package size={14} />
+                                                    Assets
+                                                    {assetData[item.id]?.length > 0 && (
+                                                        <span className="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full">
+                                                            {assetData[item.id].length}
+                                                        </span>
+                                                    )}
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-9 gap-2"
+                                                    onClick={() => handleSaveItem(item.id, item.scheme)}
+                                                    disabled={isSubmitted}
+                                                >
+                                                    <Save size={14} /> Save Draft
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    className={cn(
+                                                        "h-9 gap-2",
+                                                        isSubmitted ? "bg-emerald-500" : "bg-blue-600 hover:bg-blue-700"
+                                                    )}
+                                                    onClick={() => handleSubmitItem(item.id, item.scheme)}
+                                                    disabled={isSubmitted}
+                                                >
+                                                    {isSubmitted ? <Check size={14} /> : <Send size={14} />}
+                                                    {isSubmitted ? 'Submitted' : role === 'creator' ? 'Send to Verifier' : role === 'verifier' ? 'Send to Approver' : 'Approve'}
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        {/* Expanded Section */}
+                                        {isExpanded && (
+                                            <div className="px-5 py-4 border-t border-slate-100 space-y-5">
+                                                {/* Warning for ceiling exceed */}
+                                                {exceedsCeiling && (
+                                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-3">
+                                                        <AlertTriangle className="text-amber-500 flex-shrink-0 mt-0.5" size={18} />
+                                                        <div>
+                                                            <p className="text-sm font-medium text-amber-800">Budget exceeds ceiling limit</p>
+                                                            <p className="text-xs text-amber-600">Ceiling: {formatCurrency(item.ceilingLimit || 0)}. Please provide justification below.</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Outcome Budgeting */}
+                                                <div>
+                                                    <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                                                        <Target size={16} className="text-blue-500" />
+                                                        Outcome Budgeting Tags
+                                                    </h4>
+                                                    <div className="grid grid-cols-3 gap-4">
+                                                        <div>
+                                                            <Label className="text-xs text-slate-500">Outcome Category</Label>
+                                                            <Select
+                                                                value={data.outcomeCategory}
+                                                                onValueChange={(v) => updateFormData(item.id, 'outcomeCategory', v)}
+                                                                disabled={isSubmitted}
+                                                            >
+                                                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    {OUTCOME_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                        <div>
+                                                            <Label className="text-xs text-slate-500">SDG Goal</Label>
+                                                            <Select
+                                                                value={data.sdgGoal}
+                                                                onValueChange={(v) => updateFormData(item.id, 'sdgGoal', v)}
+                                                                disabled={isSubmitted}
+                                                            >
+                                                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    {SDG_GOALS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                        <div>
+                                                            <Label className="text-xs text-slate-500">SDG Target</Label>
+                                                            <Select
+                                                                value={data.sdgTarget}
+                                                                onValueChange={(v) => updateFormData(item.id, 'sdgTarget', v)}
+                                                                disabled={isSubmitted}
+                                                            >
+                                                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    {SDG_TARGETS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                        <div>
+                                                            <Label className="text-xs text-slate-500">Gender Tag</Label>
+                                                            <Select
+                                                                value={data.genderTag}
+                                                                onValueChange={(v) => updateFormData(item.id, 'genderTag', v)}
+                                                                disabled={isSubmitted}
+                                                            >
+                                                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    {GENDER_TAGS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                        <div>
+                                                            <Label className="text-xs text-slate-500">Geography</Label>
+                                                            <Select
+                                                                value={data.geographyTag}
+                                                                onValueChange={(v) => updateFormData(item.id, 'geographyTag', v)}
+                                                                disabled={isSubmitted}
+                                                            >
+                                                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                                                <SelectContent>
+                                                                    {GEOGRAPHY_TAGS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                        <div className="flex items-end">
+                                                            <label className="flex items-center gap-2 h-10 cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={data.scstTag}
+                                                                    onChange={(e) => updateFormData(item.id, 'scstTag', e.target.checked)}
+                                                                    disabled={isSubmitted}
+                                                                    className="w-4 h-4 rounded border-slate-300"
+                                                                />
+                                                                <span className="text-sm text-slate-700">SC/ST Component</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Remarks */}
+                                                <div>
+                                                    <Label className="text-xs text-slate-500">Remarks / Justification</Label>
+                                                    <Textarea
+                                                        value={data.creatorRemarks}
+                                                        onChange={(e) => updateFormData(item.id, 'creatorRemarks', e.target.value)}
+                                                        placeholder="Add any remarks or justification for this estimation..."
+                                                        disabled={isSubmitted}
+                                                        className="mt-1"
+                                                        rows={2}
+                                                    />
+                                                </div>
+
+                                                {/* Breakup Section */}
+                                                {needsBreakup && (
+                                                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-2">
+                                                                <Layers className="text-blue-600" size={18} />
+                                                                <span className="font-medium text-blue-800">Item-wise Breakup Required</span>
+                                                                {breakupData[item.id]?.length > 0 && (
+                                                                    <span className="bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full text-xs font-semibold">
+                                                                        {breakupData[item.id].length} items
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="bg-white"
+                                                                onClick={() => handleBreakupClick(item)}
+                                                                disabled={isSubmitted}
+                                                            >
+                                                                {breakupData[item.id]?.length > 0 ? 'Edit Breakup' : 'Add Breakup'}
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+                    </div>
+
+                    {filteredItems.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                            <Search size={48} className="mb-4 opacity-30" />
+                            <p className="text-lg font-medium text-slate-600">No budget lines found</p>
+                            <p className="text-sm">Try adjusting your search or filters</p>
+                        </div>
+                    )}
+                </div>
+            </main>
+        </div>
+    );
+}

@@ -207,3 +207,25 @@ export interface WorkflowAction {
     fromStatus: string;
     toStatus: string;
 }
+
+// Audit Trail Entry - tracks field-level changes
+export interface AuditTrailEntry {
+    id: string;
+    budgetLineItemId: string;
+    timestamp: string;
+    action: 'created' | 'modified' | 'submitted' | 'verified' | 'approved' | 'returned' | 'rejected';
+    performedBy: {
+        userId: string;
+        name: string;
+        role: 'ddo_creator' | 'ddo_verifier' | 'ddo_approver' | 'bco_creator' | 'bco_verifier' | 'bco_approver';
+        designation: string;
+    };
+    level: 'DDO' | 'BCO' | 'Admin' | 'Finance';
+    changes?: {
+        field: string;
+        fieldLabel: string;
+        oldValue: string | number | null;
+        newValue: string | number | null;
+    }[];
+    remarks?: string;
+}

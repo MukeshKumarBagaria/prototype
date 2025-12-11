@@ -58,12 +58,21 @@ export function DDODashboard() {
                     <h1 className="text-3xl font-bold text-slate-900">DDO Budget Estimation</h1>
                     <p className="text-slate-500 mt-1">Create and manage budget estimations</p>
                 </div>
-                <Link href="/budget-estimation/ddo-creator/new">
-                    <Button className="gap-2 shadow-lg shadow-blue-200">
-                        <PlusCircle size={20} />
-                        New Estimation
-                    </Button>
-                </Link>
+                <div className="flex gap-3">
+                    <Link href="/budget-estimation/ddo-creator/grid">
+                        <Button variant="outline" className="gap-2">
+                            <FileText size={20} />
+                            Switch to Grid View
+                        </Button>
+                    </Link>
+                    <Link href="/budget-estimation/ddo-creator/new">
+                        <Button className="gap-2 shadow-lg shadow-blue-200">
+                            <PlusCircle size={20} />
+                            New Estimation
+                        </Button>
+                    </Link>
+                </div>
+
             </div>
 
             {/* Stats Cards */}
