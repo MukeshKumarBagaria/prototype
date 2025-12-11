@@ -385,9 +385,8 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                                     ref={(el) => { cardRefs.current[item.id] = el; }}
                                     className={cn(
                                         "bg-white shadow-sm overflow-hidden transition-all duration-300",
-                                        "border hover:shadow-md",
-                                        isSubmitted ? "border-l-4 border-l-emerald-500 bg-emerald-50/30" :
-                                            isMissingRequired ? "border-l-4 border-l-amber-400" : "border-slate-200"
+                                        "border hover:shadow-md border-slate-200",
+                                        isMissingRequired && "border-l-4 border-l-amber-400"
                                     )}
                                 >
                                     <CardContent className="p-0">
