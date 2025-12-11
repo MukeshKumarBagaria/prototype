@@ -405,10 +405,6 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                                                         )}>
                                                             {item.chargedOrVoted}
                                                         </span>
-                                                        <span className={cn("inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold text-white", statusInfo.color)}>
-                                                            <statusInfo.icon size={12} />
-                                                            {statusInfo.label}
-                                                        </span>
                                                     </div>
                                                     {/* Scheme Name - Slightly Larger */}
                                                     <h3 className="font-semibold text-slate-800 text-base leading-snug">
