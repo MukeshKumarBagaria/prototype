@@ -285,9 +285,18 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                                     </div>
                                 </div>
                                 <div className="w-px h-10 bg-slate-200" />
-                                <div>
-                                    <p className="text-xs text-slate-500 uppercase font-medium">Total Proposed RE</p>
-                                    <p className="text-xl font-bold text-blue-600 font-mono">{formatCurrency(totalProposedRE)}</p>
+                                {/* Progress Bar */}
+                                <div className="flex-1 max-w-xs">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <p className="text-xs text-slate-500 uppercase font-medium">Progress</p>
+                                        <p className="text-sm font-semibold text-slate-700">{getFilledCount()}/{items.length}</p>
+                                    </div>
+                                    <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full transition-all duration-300"
+                                            style={{ width: `${items.length > 0 ? (getFilledCount() / items.length) * 100 : 0}%` }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                             <Button
