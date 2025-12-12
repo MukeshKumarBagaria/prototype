@@ -30,9 +30,19 @@ export function TrendAnalysisPopup({ budgetLine, history }: TrendAnalysisPopupPr
         ? ((history.fy1 - history.fy5) / history.fy5 * 100).toFixed(1)
         : null;
 
-    const actualTillDate = history?.actualTillDate || 0;
+    // 3-Year Medium Term Estimate Data (Rolling Budget - BE1, BE2, BE3)
+    // Using mock data based on current BE with growth projections
     const currentBE = history?.currentYearBE || 0;
-    const projectedBalance = Math.max(0, currentBE - actualTillDate);
+    const be1 = currentBE * 1.05; // 5% growth estimate for next year
+    const be2 = be1 * 1.05; // 5% growth for year+1
+    const be3 = be2 * 1.05; // 5% growth for year+2
+
+    const mtefData = [
+        { year: 'Current FY', estimate: currentBE / 10000000 },
+        { year: 'FY+1 (BE1)', estimate: be1 / 10000000 },
+        { year: 'FY+2 (BE2)', estimate: be2 / 10000000 },
+        { year: 'FY+3 (BE3)', estimate: be3 / 10000000 },
+    ];
 
     return (
         <>
@@ -88,7 +98,7 @@ export function TrendAnalysisPopup({ budgetLine, history }: TrendAnalysisPopupPr
                                 </div>
                             </div>
 
-                            {/* Chart Section */}
+                            {/* Chart Section - 5 Year Trend */}
                             <div className="p-5 border-b border-slate-100">
                                 <div className="flex justify-between items-center mb-4">
                                     <h4 className="text-base font-bold text-slate-900">5-Year Expenditure Trend</h4>
@@ -104,7 +114,7 @@ export function TrendAnalysisPopup({ budgetLine, history }: TrendAnalysisPopupPr
                                     )}
                                 </div>
 
-                                <div className="h-48 w-full">
+                                <div className="h-44 w-full">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <LineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
                                             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
@@ -148,44 +158,67 @@ export function TrendAnalysisPopup({ budgetLine, history }: TrendAnalysisPopupPr
                                 <div className="flex justify-center mt-2">
                                     <div className="flex items-center gap-2 text-xs text-slate-600">
                                         <div className="w-3 h-3 rounded-full bg-blue-500" />
-                                        <span>Expenditure</span>
+                                        <span>Historical Expenditure</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Stats Grid */}
-                            <div className="grid grid-cols-4 divide-x divide-slate-100 border-b border-slate-100">
-                                <div className="p-4 text-center">
-                                    <p className="text-xs text-slate-500 mb-1">Ceiling Limit</p>
-                                    <p className="text-base font-bold text-slate-900">{formatCurrency(budgetLine.ceilingLimit)}</p>
+                            {/* Chart Section - 3 Year Rolling Budget (MTEF) */}
+                            <div className="p-5 bg-white">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h4 className="text-base font-bold text-slate-900">Medium Term Estimate (Rolling Budget)</h4>
+                                    <span className="text-xs font-medium px-2 py-1 rounded bg-violet-100 text-violet-700">
+                                        3-Year MTEF
+                                    </span>
                                 </div>
-                                <div className="p-4 text-center">
-                                    <p className="text-xs text-slate-500 mb-1">Expenditure (Aug)</p>
-                                    <p className="text-base font-bold text-slate-900">{formatCurrency(actualTillDate)}</p>
-                                </div>
-                                <div className="p-4 text-center">
-                                    <p className="text-xs text-slate-500 mb-1">Balance (BCO)</p>
-                                    <p className="text-base font-bold text-slate-900">{formatCurrency(budgetLine.balanceBudgetBCO || 0)}</p>
-                                </div>
-                                <div className="p-4 text-center">
-                                    <p className="text-xs text-slate-500 mb-1">Balance (DDO)</p>
-                                    <p className="text-base font-bold text-slate-900">{formatCurrency(budgetLine.balanceBudgetDDO || 0)}</p>
-                                </div>
-                            </div>
 
-                            {/* Bottom Stats */}
-                            <div className="grid grid-cols-3 divide-x divide-slate-100 bg-slate-50">
-                                <div className="p-4 text-center">
-                                    <p className="text-xs text-slate-500 mb-1">Actual Till Date</p>
-                                    <p className="text-lg font-bold text-orange-600">{formatCurrency(actualTillDate)}</p>
+                                <div className="h-36 w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={mtefData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                                            <XAxis
+                                                dataKey="year"
+                                                tick={{ fontSize: 11, fill: '#64748b' }}
+                                                axisLine={{ stroke: '#e2e8f0' }}
+                                                tickLine={false}
+                                            />
+                                            <YAxis
+                                                tick={{ fontSize: 11, fill: '#64748b' }}
+                                                axisLine={false}
+                                                tickLine={false}
+                                                tickFormatter={(value) => `₹${value}Cr`}
+                                                width={55}
+                                            />
+                                            <Tooltip
+                                                contentStyle={{
+                                                    background: '#0f172a',
+                                                    border: 'none',
+                                                    borderRadius: '8px',
+                                                    fontSize: '12px',
+                                                    color: '#fff',
+                                                    boxShadow: '0 10px 40px rgba(0,0,0,0.3)'
+                                                }}
+                                                formatter={(value: number) => [`₹${(value).toFixed(2)} Cr`, 'Budget Estimate']}
+                                            />
+                                            <Line
+                                                type="monotone"
+                                                dataKey="estimate"
+                                                stroke="#8b5cf6"
+                                                strokeWidth={2.5}
+                                                strokeDasharray="5 5"
+                                                dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 5, stroke: '#fff' }}
+                                                activeDot={{ r: 7, fill: '#8b5cf6', stroke: '#fff', strokeWidth: 3 }}
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
                                 </div>
-                                <div className="p-4 text-center">
-                                    <p className="text-xs text-slate-500 mb-1">Projected Balance</p>
-                                    <p className="text-lg font-bold text-blue-600">{formatCurrency(projectedBalance)}</p>
-                                </div>
-                                <div className="p-4 text-center">
-                                    <p className="text-xs text-slate-500 mb-1">Total Expected</p>
-                                    <p className="text-lg font-bold text-emerald-600">{formatCurrency(currentBE)}</p>
+
+                                {/* Legend */}
+                                <div className="flex justify-center mt-2">
+                                    <div className="flex items-center gap-2 text-xs text-slate-600">
+                                        <div className="w-3 h-0.5 bg-violet-500" style={{ borderTop: '2px dashed #8b5cf6', width: '16px' }} />
+                                        <span>Projected Estimates (BE1 → BE2 → BE3)</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
