@@ -44,6 +44,7 @@ interface ItemFormData {
     forwardEstimateY2: number;
     forwardEstimateY3: number;
     creatorRemarks: string;
+    remarks: string;
     outcomeCategory: string;
     sdgGoal: string;
     sdgTarget: string;
@@ -133,6 +134,7 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
             forwardEstimateY2: est?.forwardEstimateY2 || 0,
             forwardEstimateY3: est?.forwardEstimateY3 || 0,
             creatorRemarks: est?.creatorRemarks || '',
+            remarks: '',
             outcomeCategory: est?.outcomeCategory || '',
             sdgGoal: est?.sdgGoal || '',
             sdgTarget: est?.sdgTarget || '',
@@ -427,85 +429,141 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
 
                                         {/* Main Estimation Grid */}
                                         <div className="px-5 py-4 bg-slate-50/50">
-                                            {/* Data Row */}
-                                            <div className="grid grid-cols-8 gap-3 items-end">
-                                                {/* Historical Values */}
+                                            {/* Row 1: Display Fields */}
+                                            <div className="grid grid-cols-8 gap-3 pb-3 border-b border-slate-100">
                                                 <div>
-                                                    <Label className="text-xs text-slate-500 mb-1 block">Prev Year BE</Label>
-                                                    <p className="text-sm font-semibold text-slate-600 font-mono">{formatCurrency(history?.fy1 || 0)}</p>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Budget Estimate (Prev FY)</Label>
+                                                    <p className="text-sm font-medium text-slate-700 font-mono mt-1">{formatCurrency(history?.fy1 || 0)}</p>
                                                 </div>
                                                 <div>
-                                                    <Label className="text-xs text-slate-500 mb-1 block">Prev Year RE</Label>
-                                                    <p className="text-sm font-semibold text-slate-600 font-mono">{formatCurrency(history?.currentYearBE || 0)}</p>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Expenditure (Prev FY)</Label>
+                                                    <p className="text-sm font-medium text-slate-700 font-mono mt-1">{formatCurrency(history?.actualTillDate || 0)}</p>
                                                 </div>
                                                 <div>
-                                                    <Label className="text-xs text-slate-500 mb-1 block">Actuals (YTD)</Label>
-                                                    <p className="text-sm font-semibold text-slate-700 font-mono">{formatCurrency(history?.actualTillDate || 0)}</p>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Budget Estimate (Curr FY)</Label>
+                                                    <p className="text-sm font-medium text-slate-700 font-mono mt-1">{formatCurrency(history?.currentYearBE || 0)}</p>
                                                 </div>
+                                                <div>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Budget Allotment (Curr FY)</Label>
+                                                    <p className="text-sm font-medium text-slate-700 font-mono mt-1">{formatCurrency(history?.currentYearBE || 0)}</p>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Suppl. Budget (RA+Suppl.)</Label>
+                                                    <p className="text-sm font-medium text-slate-700 font-mono mt-1">₹0</p>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Total BE (Curr FY)</Label>
+                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1">{formatCurrency(history?.currentYearBE || 0)}</p>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Exp. Upto Cutoff Date</Label>
+                                                    <p className="text-sm font-medium text-slate-700 font-mono mt-1">{formatCurrency(history?.actualTillDate || 0)}</p>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">% RE Over BE (Prev FY)</Label>
+                                                    <p className="text-sm font-medium text-slate-600 font-mono mt-1">
+                                                        {history?.fy1 && history.fy1 > 0
+                                                            ? `${((((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) - history.fy1) / history.fy1 * 100).toFixed(1)}%`
+                                                            : '—'}
+                                                    </p>
+                                                </div>
+                                            </div>
 
-                                                {/* Editable Fields */}
+                                            {/* Row 2: Input & Calculated Fields */}
+                                            <div className="grid grid-cols-8 gap-3 py-3 border-b border-slate-100 items-end">
                                                 <div>
-                                                    <Label className="text-xs text-blue-600 font-semibold mb-1 block">Proposed RE *</Label>
+                                                    <Label className="text-[10px] text-blue-600 font-medium uppercase tracking-wide leading-tight">Proposed Exp. (Rem. Months) *</Label>
                                                     <Input
                                                         type="number"
                                                         value={data.reviseEstimateCY || ''}
                                                         onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', parseFloat(e.target.value) || 0)}
                                                         placeholder="0"
                                                         disabled={isSubmitted}
-                                                        className="h-10 font-mono text-sm border-blue-200 focus:border-blue-400 bg-white"
+                                                        className="h-8 font-mono text-sm border-slate-200 focus:border-blue-400 bg-white mt-1"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <Label className="text-xs text-blue-600 font-semibold mb-1 block">Next Year BE *</Label>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Total Revised Estimate (RE)</Label>
+                                                    <p className="text-sm font-semibold text-slate-800 font-mono h-8 flex items-center mt-1">
+                                                        {formatCurrency((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Amt. for Surrender</Label>
+                                                    <p className={cn(
+                                                        "text-sm font-medium font-mono h-8 flex items-center mt-1",
+                                                        ((history?.currentYearBE || 0) - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) >= 0 ? "text-emerald-600" : "text-red-600"
+                                                    )}>
+                                                        {formatCurrency((history?.currentYearBE || 0) - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)))}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[10px] text-blue-600 font-medium uppercase tracking-wide leading-tight">BE for Next FY (BE1) *</Label>
                                                     <Input
                                                         type="number"
                                                         value={data.budgetEstimateNextYear || ''}
                                                         onChange={(e) => updateFormData(item.id, 'budgetEstimateNextYear', parseFloat(e.target.value) || 0)}
                                                         placeholder="0"
                                                         disabled={isSubmitted}
-                                                        className="h-10 font-mono text-sm border-blue-200 focus:border-blue-400 bg-white"
+                                                        className="h-8 font-mono text-sm border-slate-200 focus:border-blue-400 bg-white mt-1"
                                                     />
                                                 </div>
-
-                                                {/* Forward Estimates */}
                                                 <div>
-                                                    <Label className="text-xs text-purple-600 font-semibold mb-1 block">Forward Est (Y+2)</Label>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">% BE1 Over Current BE</Label>
+                                                    <p className={cn(
+                                                        "text-sm font-medium font-mono h-8 flex items-center mt-1",
+                                                        data.budgetEstimateNextYear && history?.currentYearBE
+                                                            ? (((data.budgetEstimateNextYear - history.currentYearBE) / history.currentYearBE) >= 0 ? "text-emerald-600" : "text-red-600")
+                                                            : "text-slate-500"
+                                                    )}>
+                                                        {history?.currentYearBE && history.currentYearBE > 0 && data.budgetEstimateNextYear
+                                                            ? `${(((data.budgetEstimateNextYear - history.currentYearBE) / history.currentYearBE) * 100).toFixed(1)}%`
+                                                            : '—'}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">% BE1 Over Current RE</Label>
+                                                    <p className="text-sm font-medium text-slate-600 font-mono h-8 flex items-center mt-1">
+                                                        {((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) > 0 && data.budgetEstimateNextYear
+                                                            ? `${(((data.budgetEstimateNextYear - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) / ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) * 100).toFixed(1)}%`
+                                                            : '—'}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">BE for Next FY+1 (BE2)</Label>
                                                     <Input
                                                         type="number"
                                                         value={data.forwardEstimateY2 || ''}
                                                         onChange={(e) => updateFormData(item.id, 'forwardEstimateY2', parseFloat(e.target.value) || 0)}
                                                         placeholder="0"
                                                         disabled={isSubmitted}
-                                                        className="h-10 font-mono text-sm border-purple-200 focus:border-purple-400 bg-white"
+                                                        className="h-8 font-mono text-sm border-slate-200 bg-white mt-1"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <Label className="text-xs text-purple-600 font-semibold mb-1 block">Forward Est (Y+3)</Label>
+                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">BE for Next FY+2 (BE3)</Label>
                                                     <Input
                                                         type="number"
                                                         value={data.forwardEstimateY3 || ''}
                                                         onChange={(e) => updateFormData(item.id, 'forwardEstimateY3', parseFloat(e.target.value) || 0)}
                                                         placeholder="0"
                                                         disabled={isSubmitted}
-                                                        className="h-10 font-mono text-sm border-purple-200 focus:border-purple-400 bg-white"
+                                                        className="h-8 font-mono text-sm border-slate-200 bg-white mt-1"
                                                     />
                                                 </div>
+                                            </div>
 
-                                                {/* Deviation Indicator */}
-                                                <div>
-                                                    <Label className="text-xs text-slate-500 mb-1 block">Deviation</Label>
-                                                    {deviation ? (
-                                                        <div className={cn(
-                                                            "h-10 flex items-center gap-1 text-sm font-semibold rounded px-2",
-                                                            parseFloat(deviation) > 0 ? "text-emerald-600 bg-emerald-50" : "text-red-600 bg-red-50"
-                                                        )}>
-                                                            {parseFloat(deviation) > 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                                                            {Math.abs(parseFloat(deviation))}%
-                                                        </div>
-                                                    ) : (
-                                                        <div className="h-10 flex items-center text-sm text-slate-400">—</div>
-                                                    )}
-                                                </div>
+                                            {/* Row 3: DDO Remarks */}
+                                            <div className="pt-3">
+                                                <Label className="text-[10px] text-slate-400 uppercase tracking-wide">DDO Remarks</Label>
+                                                <textarea
+                                                    value={data.remarks || ''}
+                                                    onChange={(e) => updateFormData(item.id, 'remarks', e.target.value)}
+                                                    placeholder="Enter remarks/justification (optional)..."
+                                                    disabled={isSubmitted}
+                                                    className="w-full h-12 px-3 py-2 text-sm border border-slate-200 rounded focus:border-slate-300 focus:ring-0 bg-white resize-none placeholder:text-slate-400 mt-1"
+                                                    maxLength={2000}
+                                                />
                                             </div>
 
                                             {/* Actions Row - Separate line */}
