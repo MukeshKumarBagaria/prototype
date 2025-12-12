@@ -272,7 +272,7 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
     return (
         <div className="h-screen flex flex-col bg-slate-50">
             {/* Fixed Header Section */}
-            <header className="flex-shrink-0 bg-slate-50 px-4 pt-4">
+            <header className="flex-shrink-0 bg-slate-50 px-4 pt-2">
                 <div className="max-w-[1400px] mx-auto">
                     {/* Summary Strip */}
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-4">
