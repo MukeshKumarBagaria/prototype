@@ -437,40 +437,40 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                                         </div>
 
                                         {/* Main Estimation Grid */}
-                                        <div className="px-5 py-4 bg-slate-50/50">
-                                            {/* Row 1: Display Fields */}
-                                            <div className="grid grid-cols-8 gap-3 pb-3 border-b border-slate-100">
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Budget Estimate (Prev FY)</Label>
-                                                    <p className="text-sm font-medium text-slate-700 font-mono mt-1">{formatCurrency(history?.fy1 || 0)}</p>
+                                        <div className="px-5 py-4 bg-white">
+                                            {/* Row 1: Display Fields - Non-editable */}
+                                            <div className="grid grid-cols-8 gap-x-4 gap-y-1 pb-3 border-b border-slate-200">
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Budget Estimate (Prev FY)</Label>
+                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.fy1 || 0)}</p>
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Expenditure (Prev FY)</Label>
-                                                    <p className="text-sm font-medium text-slate-700 font-mono mt-1">{formatCurrency(history?.actualTillDate || 0)}</p>
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Expenditure (Prev FY)</Label>
+                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.actualTillDate || 0)}</p>
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Budget Estimate (Curr FY)</Label>
-                                                    <p className="text-sm font-medium text-slate-700 font-mono mt-1">{formatCurrency(history?.currentYearBE || 0)}</p>
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Budget Estimate (Curr FY)</Label>
+                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Budget Allotment (Curr FY)</Label>
-                                                    <p className="text-sm font-medium text-slate-700 font-mono mt-1">{formatCurrency(history?.currentYearBE || 0)}</p>
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Budget Allotment (Curr FY)</Label>
+                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Suppl. Budget (RA+Suppl.)</Label>
-                                                    <p className="text-sm font-medium text-slate-700 font-mono mt-1">₹0</p>
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Suppl. Budget (RA+Suppl.)</Label>
+                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">₹0</p>
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Total BE (Curr FY)</Label>
-                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1">{formatCurrency(history?.currentYearBE || 0)}</p>
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Total BE (Curr FY)</Label>
+                                                    <p className="text-sm font-bold text-slate-900 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Exp. Upto Cutoff Date</Label>
-                                                    <p className="text-sm font-medium text-slate-700 font-mono mt-1">{formatCurrency(history?.actualTillDate || 0)}</p>
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Exp. Upto Cutoff Date</Label>
+                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.actualTillDate || 0)}</p>
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">% RE Over BE (Prev FY)</Label>
-                                                    <p className="text-sm font-medium text-slate-600 font-mono mt-1">
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">% RE Over BE (Prev FY)</Label>
+                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">
                                                         {history?.fy1 && history.fy1 > 0
                                                             ? `${((((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) - history.fy1) / history.fy1 * 100).toFixed(1)}%`
                                                             : '—'}
@@ -478,99 +478,112 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                                                 </div>
                                             </div>
 
-                                            {/* Row 2: Input & Calculated Fields */}
-                                            <div className="grid grid-cols-8 gap-3 py-3 border-b border-slate-100 items-end">
-                                                <div>
-                                                    <Label className="text-[10px] text-blue-600 font-medium uppercase tracking-wide leading-tight">Proposed Exp. (Rem. Months) *</Label>
+                                            {/* Row 2: Input & Calculated Fields - Mixed editable/non-editable */}
+                                            <div className="grid grid-cols-8 gap-x-4 gap-y-1 py-3 border-b border-slate-200">
+                                                {/* Editable Field */}
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-blue-700 font-semibold uppercase tracking-wide leading-tight">Proposed Exp. (Rem. Months) *</Label>
                                                     <Input
                                                         type="number"
                                                         value={data.reviseEstimateCY || ''}
                                                         onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', parseFloat(e.target.value) || 0)}
                                                         placeholder="0"
                                                         disabled={isSubmitted}
-                                                        className="h-8 font-mono text-sm border-slate-200 focus:border-blue-400 bg-white mt-1"
+                                                        className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
                                                     />
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Total Revised Estimate (RE)</Label>
-                                                    <p className="text-sm font-semibold text-slate-800 font-mono h-8 flex items-center mt-1">
+                                                {/* Calculated Field */}
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Total Revised Estimate (RE)</Label>
+                                                    <p className="text-sm font-bold text-slate-900 font-mono h-8 flex items-center mt-1">
                                                         {formatCurrency((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))}
                                                     </p>
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">Amt. for Surrender</Label>
+                                                {/* Calculated Field */}
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Amt. for Surrender</Label>
                                                     <p className={cn(
-                                                        "text-sm font-medium font-mono h-8 flex items-center mt-1",
-                                                        ((history?.currentYearBE || 0) - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) >= 0 ? "text-emerald-600" : "text-red-600"
+                                                        "text-sm font-semibold font-mono h-8 flex items-center mt-1",
+                                                        ((history?.currentYearBE || 0) - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) < 0 ? "text-red-600" : "text-slate-800"
                                                     )}>
                                                         {formatCurrency((history?.currentYearBE || 0) - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)))}
                                                     </p>
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-blue-600 font-medium uppercase tracking-wide leading-tight">BE for Next FY (BE1) *</Label>
+                                                {/* Editable Field */}
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-blue-700 font-semibold uppercase tracking-wide leading-tight">BE for Next FY (BE1) *</Label>
                                                     <Input
                                                         type="number"
                                                         value={data.budgetEstimateNextYear || ''}
                                                         onChange={(e) => updateFormData(item.id, 'budgetEstimateNextYear', parseFloat(e.target.value) || 0)}
                                                         placeholder="0"
                                                         disabled={isSubmitted}
-                                                        className="h-8 font-mono text-sm border-slate-200 focus:border-blue-400 bg-white mt-1"
+                                                        className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
                                                     />
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">% BE1 Over Current BE</Label>
+                                                {/* Calculated Field */}
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">% BE1 Over Current BE</Label>
                                                     <p className={cn(
-                                                        "text-sm font-medium font-mono h-8 flex items-center mt-1",
+                                                        "text-sm font-semibold font-mono h-8 flex items-center mt-1",
                                                         data.budgetEstimateNextYear && history?.currentYearBE
-                                                            ? (((data.budgetEstimateNextYear - history.currentYearBE) / history.currentYearBE) >= 0 ? "text-emerald-600" : "text-red-600")
-                                                            : "text-slate-500"
+                                                            ? (((data.budgetEstimateNextYear - history.currentYearBE) / history.currentYearBE) < 0 ? "text-red-600" : "text-slate-800")
+                                                            : "text-slate-800"
                                                     )}>
                                                         {history?.currentYearBE && history.currentYearBE > 0 && data.budgetEstimateNextYear
                                                             ? `${(((data.budgetEstimateNextYear - history.currentYearBE) / history.currentYearBE) * 100).toFixed(1)}%`
                                                             : '—'}
                                                     </p>
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">% BE1 Over Current RE</Label>
-                                                    <p className="text-sm font-medium text-slate-600 font-mono h-8 flex items-center mt-1">
+                                                {/* Calculated Field */}
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">% BE1 Over Current RE</Label>
+                                                    <p className={cn(
+                                                        "text-sm font-semibold font-mono h-8 flex items-center mt-1",
+                                                        ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) > 0 && data.budgetEstimateNextYear
+                                                            ? (((data.budgetEstimateNextYear - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) / ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) < 0 ? "text-red-600" : "text-slate-800")
+                                                            : "text-slate-800"
+                                                    )}>
                                                         {((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) > 0 && data.budgetEstimateNextYear
                                                             ? `${(((data.budgetEstimateNextYear - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) / ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) * 100).toFixed(1)}%`
                                                             : '—'}
                                                     </p>
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">BE for Next FY+1 (BE2)</Label>
+                                                {/* Editable Field */}
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-blue-700 font-semibold uppercase tracking-wide leading-tight">BE for Next FY+1 (BE2)</Label>
                                                     <Input
                                                         type="number"
                                                         value={data.forwardEstimateY2 || ''}
                                                         onChange={(e) => updateFormData(item.id, 'forwardEstimateY2', parseFloat(e.target.value) || 0)}
                                                         placeholder="0"
                                                         disabled={isSubmitted}
-                                                        className="h-8 font-mono text-sm border-slate-200 bg-white mt-1"
+                                                        className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
                                                     />
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[10px] text-slate-400 uppercase tracking-wide leading-tight">BE for Next FY+2 (BE3)</Label>
+                                                {/* Editable Field */}
+                                                <div className="flex flex-col">
+                                                    <Label className="text-[10px] text-blue-700 font-semibold uppercase tracking-wide leading-tight">BE for Next FY+2 (BE3)</Label>
                                                     <Input
                                                         type="number"
                                                         value={data.forwardEstimateY3 || ''}
                                                         onChange={(e) => updateFormData(item.id, 'forwardEstimateY3', parseFloat(e.target.value) || 0)}
                                                         placeholder="0"
                                                         disabled={isSubmitted}
-                                                        className="h-8 font-mono text-sm border-slate-200 bg-white mt-1"
+                                                        className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
                                                     />
                                                 </div>
                                             </div>
 
-                                            {/* Row 3: DDO Remarks */}
+                                            {/* Row 3: DDO Remarks - Editable */}
                                             <div className="pt-3">
-                                                <Label className="text-[10px] text-slate-400 uppercase tracking-wide">DDO Remarks</Label>
+                                                <Label className="text-[10px] text-blue-700 font-semibold uppercase tracking-wide">DDO Remarks</Label>
                                                 <textarea
                                                     value={data.remarks || ''}
                                                     onChange={(e) => updateFormData(item.id, 'remarks', e.target.value)}
                                                     placeholder="Enter remarks/justification (optional)..."
                                                     disabled={isSubmitted}
-                                                    className="w-full h-12 px-3 py-2 text-sm border border-slate-200 rounded focus:border-slate-300 focus:ring-0 bg-white resize-none placeholder:text-slate-400 mt-1"
+                                                    className="w-full h-12 px-3 py-2 text-sm border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 bg-blue-50 resize-none placeholder:text-slate-500 mt-1"
                                                     maxLength={2000}
                                                 />
                                             </div>
