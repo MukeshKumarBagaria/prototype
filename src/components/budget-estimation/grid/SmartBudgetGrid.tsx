@@ -416,7 +416,7 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                             />
                         )}
 
-                        {filteredItems.map((item) => {
+                        {filteredItems.map((item, index) => {
                             const est = estimations.find(e => e.budgetLineItemId === item.id);
                             const history = MOCK_HISTORICAL_DATA.find(h => h.budgetLineItemId === item.id);
                             const data = getItemFormData(item.id);
@@ -424,6 +424,7 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                             const statusInfo = getStatusInfo(est?.status, item.id);
                             const isSubmitted = submittedItems.has(item.id);
                             const needsBreakup = BREAKUP_REQUIRED_HEADS.some(head => item.detailHead.includes(head.split('/')[1]));
+                            const serialNumber = index + 1;
 
                             // Calculate deviation
                             const deviation = data.budgetEstimateNextYear > 0 && data.reviseEstimateCY > 0
@@ -448,7 +449,11 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                                         {/* Header */}
                                         <div className="px-5 py-4 border-b border-slate-100">
                                             <div className="flex items-start justify-between gap-4">
-                                                <div className="flex-1 min-w-0">
+                                                <div className="flex-1 min-w-0 flex items-center gap-3">
+                                                    {/* Serial Number Badge */}
+                                                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center shadow-sm">
+                                                        {serialNumber}
+                                                    </span>
                                                     {/* Budget Line Code with Charged/Voted and Scheme - All on one line */}
                                                     <div className="flex items-center gap-3 flex-wrap">
                                                         <code className="text-lg font-bold font-mono text-slate-900 tracking-wide">
@@ -485,40 +490,32 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                                             {/* Row 1: Display Fields - Non-editable */}
                                             <div className="grid grid-cols-8 gap-x-4 gap-y-1 pb-3 border-b border-slate-200">
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Budget Estimate (Prev FY)</Label>
+                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Budget Estimate (Prev FY)</Label>
                                                     <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.fy1 || 0)}</p>
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Expenditure (Prev FY)</Label>
+                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Expenditure (Prev FY)</Label>
                                                     <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.actualTillDate || 0)}</p>
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Budget Estimate (Curr FY)</Label>
+                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Budget Estimate (Curr FY)</Label>
                                                     <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Budget Allotment (Curr FY)</Label>
+                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Budget Allotment (Curr FY)</Label>
                                                     <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Suppl. Budget (RA+Suppl.)</Label>
+                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Suppl. Budget (RA+Suppl.)</Label>
                                                     <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">₹0</p>
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Total BE (Curr FY)</Label>
+                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Total BE (Curr FY)</Label>
                                                     <p className="text-sm font-bold text-slate-900 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Exp. Upto Cutoff Date</Label>
+                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Exp. Upto Cutoff Date</Label>
                                                     <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.actualTillDate || 0)}</p>
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">% RE Over BE (Prev FY)</Label>
-                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">
-                                                        {history?.fy1 && history.fy1 > 0
-                                                            ? `${((((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) - history.fy1) / history.fy1 * 100).toFixed(1)}%`
-                                                            : '—'}
-                                                    </p>
                                                 </div>
                                             </div>
 
@@ -526,7 +523,7 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                                             <div className="grid grid-cols-8 gap-x-4 gap-y-1 py-3 border-b border-slate-200">
                                                 {/* Editable Field */}
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-blue-700 font-semibold uppercase tracking-wide leading-tight">Proposed Exp. (Rem. Months) *</Label>
+                                                    <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide leading-tight">Proposed Exp. (Rem. Months) *</Label>
                                                     <Input
                                                         type="number"
                                                         value={data.reviseEstimateCY || ''}
@@ -538,24 +535,23 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                                                 </div>
                                                 {/* Calculated Field */}
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Total Revised Estimate (RE)</Label>
+                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Total Revised Estimate (RE)</Label>
                                                     <p className="text-sm font-bold text-slate-900 font-mono h-8 flex items-center mt-1">
                                                         {formatCurrency((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))}
                                                     </p>
                                                 </div>
-                                                {/* Calculated Field */}
+                                                {/* Calculated Field - % RE Over BE moved here */}
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">Amt. for Surrender</Label>
-                                                    <p className={cn(
-                                                        "text-sm font-semibold font-mono h-8 flex items-center mt-1",
-                                                        ((history?.currentYearBE || 0) - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) < 0 ? "text-red-600" : "text-slate-800"
-                                                    )}>
-                                                        {formatCurrency((history?.currentYearBE || 0) - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)))}
+                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">% RE Over BE (Prev FY)</Label>
+                                                    <p className="text-sm font-semibold text-slate-800 font-mono h-8 flex items-center mt-1">
+                                                        {history?.fy1 && history.fy1 > 0
+                                                            ? `${((((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) - history.fy1) / history.fy1 * 100).toFixed(1)}%`
+                                                            : '—'}
                                                     </p>
                                                 </div>
                                                 {/* Editable Field */}
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-blue-700 font-semibold uppercase tracking-wide leading-tight">BE for Next FY (BE1) *</Label>
+                                                    <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide leading-tight">BE for Next FY (BE1) *</Label>
                                                     <Input
                                                         type="number"
                                                         value={data.budgetEstimateNextYear || ''}
@@ -567,7 +563,7 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                                                 </div>
                                                 {/* Calculated Field */}
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">% BE1 Over Current BE</Label>
+                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">% BE1 Over Current BE</Label>
                                                     <p className={cn(
                                                         "text-sm font-semibold font-mono h-8 flex items-center mt-1",
                                                         data.budgetEstimateNextYear && history?.currentYearBE
@@ -581,7 +577,7 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                                                 </div>
                                                 {/* Calculated Field */}
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-slate-500 uppercase tracking-wide leading-tight font-medium">% BE1 Over Current RE</Label>
+                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">% BE1 Over Current RE</Label>
                                                     <p className={cn(
                                                         "text-sm font-semibold font-mono h-8 flex items-center mt-1",
                                                         ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) > 0 && data.budgetEstimateNextYear
@@ -595,7 +591,7 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                                                 </div>
                                                 {/* Editable Field */}
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-blue-700 font-semibold uppercase tracking-wide leading-tight">BE for Next FY+1 (BE2)</Label>
+                                                    <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide leading-tight">BE for Next FY+1 (BE2)</Label>
                                                     <Input
                                                         type="number"
                                                         value={data.forwardEstimateY2 || ''}
@@ -607,7 +603,7 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                                                 </div>
                                                 {/* Editable Field */}
                                                 <div className="flex flex-col">
-                                                    <Label className="text-[10px] text-blue-700 font-semibold uppercase tracking-wide leading-tight">BE for Next FY+2 (BE3)</Label>
+                                                    <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide leading-tight">BE for Next FY+2 (BE3)</Label>
                                                     <Input
                                                         type="number"
                                                         value={data.forwardEstimateY3 || ''}
@@ -621,7 +617,7 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
 
                                             {/* Row 3: DDO Remarks - Editable */}
                                             <div className="pt-3">
-                                                <Label className="text-[10px] text-blue-700 font-semibold uppercase tracking-wide">DDO Remarks</Label>
+                                                <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide">DDO Remarks</Label>
                                                 <textarea
                                                     value={data.remarks || ''}
                                                     onChange={(e) => updateFormData(item.id, 'remarks', e.target.value)}
