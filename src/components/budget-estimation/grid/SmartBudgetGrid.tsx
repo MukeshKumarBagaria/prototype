@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
-    ArrowLeft, Save, Send, Search, Filter, Clock, CheckCircle2, AlertCircle,
+    ArrowLeft, ArrowUp, Save, Send, Search, Filter, Clock, CheckCircle2, AlertCircle,
     TrendingUp, TrendingDown, Layers, Check, ChevronDown, ChevronUp, Target,
     FileText, AlertTriangle, Sparkles, Package, History
 } from 'lucide-react';
@@ -69,7 +69,20 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
     const [assetData, setAssetData] = useState<Record<string, TypedAsset[]>>({});
     const [auditModalOpen, setAuditModalOpen] = useState(false);
     const [activeAuditLine, setActiveAuditLine] = useState<BudgetLineItem | null>(null);
+    const [showScrollTop, setShowScrollTop] = useState(false);
     const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    const mainRef = useRef<HTMLElement | null>(null);
+
+    // Handle scroll to show/hide "Go to Top" button
+    const handleScroll = (e: React.UIEvent<HTMLElement>) => {
+        const scrollTop = e.currentTarget.scrollTop;
+        setShowScrollTop(scrollTop > 200);
+    };
+
+    // Scroll to top function
+    const scrollToTop = () => {
+        mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     // Validation: Check if all required fields are filled
     const validateBudgetLines = (): string[] => {
@@ -338,7 +351,11 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
             </header>
 
             {/* Scrollable Content */}
-            <main className="flex-1 overflow-y-auto px-4 pb-6">
+            <main
+                ref={mainRef}
+                onScroll={handleScroll}
+                className="flex-1 overflow-y-auto px-4 pb-6 relative"
+            >
                 <div className="max-w-[1400px] mx-auto">
                     {/* Budget Line Cards */}
                     <div className="space-y-4">
@@ -787,11 +804,22 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
                         </div>
                     )}
                 </div>
+
+                {/* Go to Top Button */}
+                {showScrollTop && (
+                    <button
+                        onClick={scrollToTop}
+                        className="fixed bottom-24 right-2 z-50 h-8 w-8 rounded-full bg-slate-400/50 text-white shadow-md hover:bg-blue-600 hover:scale-125 transition-all duration-300 flex items-center justify-center opacity-60 hover:opacity-100"
+                        aria-label="Go to top"
+                    >
+                        <ArrowUp size={14} />
+                    </button>
+                )}
             </main>
 
             {/* Fixed Footer with Batch Submit */}
             {role === 'creator' && (
-                <footer className="flex-shrink-0 bg-white border-t border-slate-200 px-4 py-3 shadow-lg">
+                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-4 mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
                     <div className="max-w-[1400px] mx-auto flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="text-sm text-slate-600">
@@ -822,7 +850,7 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
 
             {/* Footer for Verifier role */}
             {role === 'verifier' && (
-                <footer className="flex-shrink-0 bg-white border-t border-slate-200 px-4 py-3 shadow-lg">
+                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-4 mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
                     <div className="max-w-[1400px] mx-auto flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="text-sm text-slate-600">
@@ -847,7 +875,7 @@ export function SmartBudgetGrid({ role, items, estimations }: SmartBudgetGridPro
 
             {/* Footer for Approver role */}
             {role === 'approver' && (
-                <footer className="flex-shrink-0 bg-white border-t border-slate-200 px-4 py-3 shadow-lg">
+                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-4 mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
                     <div className="max-w-[1400px] mx-auto flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="text-sm text-slate-600">
