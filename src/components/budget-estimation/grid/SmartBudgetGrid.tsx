@@ -81,6 +81,7 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+    const [collapsedCards, setCollapsedCards] = useState<Set<string>>(new Set()); // Cards that are collapsed (show only header)
     const [breakupModalOpen, setBreakupModalOpen] = useState(false);
     const [activeBreakupLine, setActiveBreakupLine] = useState<BudgetLineItem | null>(null);
     const [breakupData, setBreakupData] = useState<Record<string, BreakupItem[]>>({});
@@ -227,6 +228,29 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
             }
             return next;
         });
+    };
+
+    // Toggle card collapse (show only header vs full content)
+    const toggleCollapse = (itemId: string) => {
+        setCollapsedCards(prev => {
+            const next = new Set(prev);
+            if (next.has(itemId)) {
+                next.delete(itemId);
+            } else {
+                next.add(itemId);
+            }
+            return next;
+        });
+    };
+
+    // Collapse all cards
+    const collapseAllCards = () => {
+        setCollapsedCards(new Set(items.map(item => item.id)));
+    };
+
+    // Expand all cards
+    const expandAllCards = () => {
+        setCollapsedCards(new Set());
     };
 
     const handleBreakupClick = (item: BudgetLineItem) => {
@@ -434,6 +458,30 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                 <SelectItem value="returned">Returned</SelectItem>
                             </SelectContent>
                         </Select>
+
+                        {/* Collapse/Expand All */}
+                        <div className="flex items-center border rounded-lg overflow-hidden">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-12 px-3 rounded-none border-r text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                                onClick={expandAllCards}
+                                title="Expand All Cards"
+                            >
+                                <ChevronDown size={16} className="mr-1" />
+                                <span className="text-sm">Expand All</span>
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-12 px-3 rounded-none text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                                onClick={collapseAllCards}
+                                title="Collapse All Cards"
+                            >
+                                <ChevronUp size={16} className="mr-1" />
+                                <span className="text-sm">Collapse All</span>
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -482,6 +530,7 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                             const history = MOCK_HISTORICAL_DATA.find(h => h.budgetLineItemId === item.id);
                             const data = getItemFormData(item.id);
                             const isExpanded = expandedItems.has(item.id);
+                            const isCollapsed = collapsedCards.has(item.id);
                             const statusInfo = getStatusInfo(est?.status, item.id);
                             const isSubmitted = submittedItems.has(item.id);
                             const needsBreakup = BREAKUP_REQUIRED_HEADS.some(head => item.detailHead.includes(head.split('/')[1]));
@@ -506,8 +555,14 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                     )}
                                 >
                                     <CardContent className="p-0">
-                                        {/* Header */}
-                                        <div className="px-5 py-4 border-b border-slate-100">
+                                        {/* Header - Clickable to toggle collapse */}
+                                        <div
+                                            className={cn(
+                                                "px-5 py-4 cursor-pointer hover:bg-slate-50 transition-colors",
+                                                !isCollapsed && "border-b border-slate-100"
+                                            )}
+                                            onClick={() => toggleCollapse(item.id)}
+                                        >
                                             <div className="flex items-start justify-between gap-4">
                                                 <div className="flex-1 min-w-0 flex items-center gap-3">
                                                     {/* Serial Number Badge - using item.srNo directly */}
@@ -540,367 +595,395 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
+                                                    {/* Status indicators when collapsed */}
+                                                    {isCollapsed && (
+                                                        <div className="flex items-center gap-2">
+                                                            {isSubmitted && (
+                                                                <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+                                                                    Submitted
+                                                                </span>
+                                                            )}
+                                                            {savedItems.has(item.id) && !isSubmitted && (
+                                                                <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
+                                                                    Saved
+                                                                </span>
+                                                            )}
+                                                            {data.budgetEstimateNextYear > 0 && (
+                                                                <span className="text-xs font-mono text-slate-600">
+                                                                    BE: {formatCurrency(data.budgetEstimateNextYear)}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                     <TrendAnalysisPopup budgetLine={item} history={history} />
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        onClick={() => toggleExpand(item.id)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleCollapse(item.id);
+                                                        }}
                                                         className="text-slate-500"
                                                     >
-                                                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                                                        {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
                                                     </Button>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {/* Main Estimation Grid */}
-                                        <div className="px-5 py-4 bg-white">
-                                            {/* Row 1: Display Fields - Non-editable */}
-                                            <div className="grid grid-cols-8 gap-x-4 gap-y-1 pb-3 border-b border-slate-200">
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Budget Estimate ({FY.prev})</Label>
-                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.fy1 || 0)}</p>
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Expenditure ({FY.prev})</Label>
-                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.actualTillDate || 0)}</p>
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Budget Estimate ({FY.curr})</Label>
-                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Budget Allotment ({FY.curr})</Label>
-                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Reappropriation</Label>
-                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">₹0</p>
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Supplementary Budget</Label>
-                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">₹0</p>
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Total BE ({FY.curr})</Label>
-                                                    <p className="text-sm font-bold text-slate-900 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Exp. Upto Cutoff Date</Label>
-                                                    <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.actualTillDate || 0)}</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Row 2: Input & Calculated Fields - Mixed editable/non-editable */}
-                                            <div className="grid grid-cols-8 gap-x-4 gap-y-1 py-3 border-b border-slate-200">
-                                                {/* Editable Field */}
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide leading-tight">Proposed Exp. (Rem. Months) *</Label>
-                                                    <Input
-                                                        type="number"
-                                                        value={data.reviseEstimateCY || ''}
-                                                        onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', parseFloat(e.target.value) || 0)}
-                                                        placeholder="0"
-                                                        disabled={isSubmitted}
-                                                        className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
-                                                    />
-                                                </div>
-                                                {/* Calculated Field */}
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Total Revised Estimate (RE)</Label>
-                                                    <p className="text-sm font-bold text-slate-900 font-mono h-8 flex items-center mt-1">
-                                                        {formatCurrency((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))}
-                                                    </p>
-                                                </div>
-                                                {/* Calculated Field - % RE Over BE moved here */}
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">% RE Over BE ({FY.prev})</Label>
-                                                    <p className="text-sm font-semibold text-slate-800 font-mono h-8 flex items-center mt-1">
-                                                        {history?.fy1 && history.fy1 > 0
-                                                            ? `${((((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) - history.fy1) / history.fy1 * 100).toFixed(1)}%`
-                                                            : '—'}
-                                                    </p>
-                                                </div>
-                                                {/* Editable Field */}
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide leading-tight">BE {FY.next} (BE1) *</Label>
-                                                    <Input
-                                                        type="number"
-                                                        value={data.budgetEstimateNextYear || ''}
-                                                        onChange={(e) => updateFormData(item.id, 'budgetEstimateNextYear', parseFloat(e.target.value) || 0)}
-                                                        placeholder="0"
-                                                        disabled={isSubmitted}
-                                                        className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
-                                                    />
-                                                </div>
-                                                {/* Calculated Field */}
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">% BE1 Over Current BE</Label>
-                                                    <p className={cn(
-                                                        "text-sm font-semibold font-mono h-8 flex items-center mt-1",
-                                                        data.budgetEstimateNextYear && history?.currentYearBE
-                                                            ? (((data.budgetEstimateNextYear - history.currentYearBE) / history.currentYearBE) < 0 ? "text-red-600" : "text-slate-800")
-                                                            : "text-slate-800"
-                                                    )}>
-                                                        {history?.currentYearBE && history.currentYearBE > 0 && data.budgetEstimateNextYear
-                                                            ? `${(((data.budgetEstimateNextYear - history.currentYearBE) / history.currentYearBE) * 100).toFixed(1)}%`
-                                                            : '—'}
-                                                    </p>
-                                                </div>
-                                                {/* Calculated Field */}
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">% BE1 Over Current RE</Label>
-                                                    <p className={cn(
-                                                        "text-sm font-semibold font-mono h-8 flex items-center mt-1",
-                                                        ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) > 0 && data.budgetEstimateNextYear
-                                                            ? (((data.budgetEstimateNextYear - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) / ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) < 0 ? "text-red-600" : "text-slate-800")
-                                                            : "text-slate-800"
-                                                    )}>
-                                                        {((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) > 0 && data.budgetEstimateNextYear
-                                                            ? `${(((data.budgetEstimateNextYear - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) / ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) * 100).toFixed(1)}%`
-                                                            : '—'}
-                                                    </p>
-                                                </div>
-                                                {/* Editable Field */}
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide leading-tight">BE {FY.nextPlus1} (BE2)</Label>
-                                                    <Input
-                                                        type="number"
-                                                        value={data.forwardEstimateY2 || ''}
-                                                        onChange={(e) => updateFormData(item.id, 'forwardEstimateY2', parseFloat(e.target.value) || 0)}
-                                                        placeholder="0"
-                                                        disabled={isSubmitted}
-                                                        className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
-                                                    />
-                                                </div>
-                                                {/* Editable Field */}
-                                                <div className="flex flex-col">
-                                                    <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide leading-tight">BE {FY.nextPlus2} (BE3)</Label>
-                                                    <Input
-                                                        type="number"
-                                                        value={data.forwardEstimateY3 || ''}
-                                                        onChange={(e) => updateFormData(item.id, 'forwardEstimateY3', parseFloat(e.target.value) || 0)}
-                                                        placeholder="0"
-                                                        disabled={isSubmitted}
-                                                        className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Row 3: DDO Remarks - Editable */}
-                                            <div className="pt-3">
-                                                <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide">DDO Remarks</Label>
-                                                <textarea
-                                                    value={data.remarks || ''}
-                                                    onChange={(e) => updateFormData(item.id, 'remarks', e.target.value)}
-                                                    onInput={(e) => {
-                                                        const target = e.target as HTMLTextAreaElement;
-                                                        target.style.height = 'auto';
-                                                        target.style.height = `${Math.max(48, target.scrollHeight)}px`;
-                                                    }}
-                                                    onFocus={(e) => {
-                                                        const target = e.target as HTMLTextAreaElement;
-                                                        if (!target.value) {
-                                                            target.style.height = '80px';
-                                                        }
-                                                    }}
-                                                    onBlur={(e) => {
-                                                        const target = e.target as HTMLTextAreaElement;
-                                                        if (!target.value) {
-                                                            target.style.height = '48px';
-                                                        }
-                                                    }}
-                                                    placeholder="Enter remarks/justification (optional)..."
-                                                    disabled={isSubmitted}
-                                                    className="w-full min-h-[48px] px-3 py-2 text-sm border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 bg-blue-50 resize-none placeholder:text-slate-500 mt-1 transition-all duration-200"
-                                                    maxLength={2000}
-                                                />
-                                            </div>
-
-                                            {/* Actions Row - Separate line */}
-                                            <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-slate-200">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-9 gap-2 border-slate-300 text-slate-600 hover:bg-slate-50"
-                                                    onClick={() => handleAuditClick(item)}
-                                                >
-                                                    <History size={14} />
-                                                    Audit Trail
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-9 gap-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50"
-                                                    onClick={() => handleAssetClick(item)}
-                                                    disabled={isSubmitted}
-                                                >
-                                                    <Package size={14} />
-                                                    Assets
-                                                    {assetData[item.id]?.length > 0 && (
-                                                        <span className="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full">
-                                                            {assetData[item.id].length}
-                                                        </span>
-                                                    )}
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-9 gap-2"
-                                                    onClick={() => handleSaveItem(item.id, item.scheme)}
-                                                    disabled={isSubmitted}
-                                                >
-                                                    <Save size={14} /> Save Draft
-                                                </Button>
-                                                {isSubmitted && (
-                                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-100 text-emerald-700 text-sm font-medium">
-                                                        <Check size={14} />
-                                                        Submitted
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Expanded Section */}
-                                        {isExpanded && (
-                                            <div className="px-5 py-4 border-t border-slate-100 space-y-5">
-                                                {/* Warning for ceiling exceed */}
-                                                {exceedsCeiling && (
-                                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-3">
-                                                        <AlertTriangle className="text-amber-500 flex-shrink-0 mt-0.5" size={18} />
-                                                        <div>
-                                                            <p className="text-sm font-medium text-amber-800">Budget exceeds ceiling limit</p>
-                                                            <p className="text-xs text-amber-600">Ceiling: {formatCurrency(item.ceilingLimit || 0)}. Please provide justification below.</p>
+                                        {/* Collapsible Content - only shown when not collapsed */}
+                                        {!isCollapsed && (
+                                            <>
+                                                {/* Main Estimation Grid */}
+                                                <div className="px-5 py-4 bg-white">
+                                                    {/* Row 1: Display Fields - Non-editable */}
+                                                    <div className="grid grid-cols-8 gap-x-4 gap-y-1 pb-3 border-b border-slate-200">
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Budget Estimate ({FY.prev})</Label>
+                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.fy1 || 0)}</p>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Expenditure ({FY.prev})</Label>
+                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.actualTillDate || 0)}</p>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Budget Estimate ({FY.curr})</Label>
+                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Budget Allotment ({FY.curr})</Label>
+                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Reappropriation</Label>
+                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">₹0</p>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Supplementary Budget</Label>
+                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">₹0</p>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Total BE ({FY.curr})</Label>
+                                                            <p className="text-sm font-bold text-slate-900 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Exp. Upto Cutoff Date</Label>
+                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.actualTillDate || 0)}</p>
                                                         </div>
                                                     </div>
-                                                )}
 
-                                                {/* Outcome Budgeting */}
-                                                <div>
-                                                    <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                                                        <Target size={16} className="text-blue-500" />
-                                                        Outcome Budgeting Tags
-                                                    </h4>
-                                                    <div className="grid grid-cols-3 gap-4">
-                                                        <div>
-                                                            <Label className="text-xs text-slate-500">Outcome Category</Label>
-                                                            <Select
-                                                                value={data.outcomeCategory}
-                                                                onValueChange={(v) => updateFormData(item.id, 'outcomeCategory', v)}
+                                                    {/* Row 2: Input & Calculated Fields - Mixed editable/non-editable */}
+                                                    <div className="grid grid-cols-8 gap-x-4 gap-y-1 py-3 border-b border-slate-200">
+                                                        {/* Editable Field */}
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide leading-tight">Proposed Exp. (Rem. Months) *</Label>
+                                                            <Input
+                                                                type="number"
+                                                                value={data.reviseEstimateCY || ''}
+                                                                onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', parseFloat(e.target.value) || 0)}
+                                                                placeholder="0"
                                                                 disabled={isSubmitted}
-                                                            >
-                                                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
-                                                                <SelectContent>
-                                                                    {OUTCOME_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                                                                </SelectContent>
-                                                            </Select>
+                                                                className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
+                                                            />
                                                         </div>
-                                                        <div>
-                                                            <Label className="text-xs text-slate-500">SDG Goal</Label>
-                                                            <Select
-                                                                value={data.sdgGoal}
-                                                                onValueChange={(v) => updateFormData(item.id, 'sdgGoal', v)}
+                                                        {/* Calculated Field */}
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Total Revised Estimate (RE)</Label>
+                                                            <p className="text-sm font-bold text-slate-900 font-mono h-8 flex items-center mt-1">
+                                                                {formatCurrency((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))}
+                                                            </p>
+                                                        </div>
+                                                        {/* Calculated Field - % RE Over BE moved here */}
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">% RE Over BE ({FY.prev})</Label>
+                                                            <p className="text-sm font-semibold text-slate-800 font-mono h-8 flex items-center mt-1">
+                                                                {history?.fy1 && history.fy1 > 0
+                                                                    ? `${((((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) - history.fy1) / history.fy1 * 100).toFixed(1)}%`
+                                                                    : '—'}
+                                                            </p>
+                                                        </div>
+                                                        {/* Editable Field */}
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide leading-tight">BE {FY.next} (BE1) *</Label>
+                                                            <Input
+                                                                type="number"
+                                                                value={data.budgetEstimateNextYear || ''}
+                                                                onChange={(e) => updateFormData(item.id, 'budgetEstimateNextYear', parseFloat(e.target.value) || 0)}
+                                                                placeholder="0"
                                                                 disabled={isSubmitted}
-                                                            >
-                                                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
-                                                                <SelectContent>
-                                                                    {SDG_GOALS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-                                                                </SelectContent>
-                                                            </Select>
+                                                                className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
+                                                            />
                                                         </div>
-                                                        <div>
-                                                            <Label className="text-xs text-slate-500">SDG Target</Label>
-                                                            <Select
-                                                                value={data.sdgTarget}
-                                                                onValueChange={(v) => updateFormData(item.id, 'sdgTarget', v)}
+                                                        {/* Calculated Field */}
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">% BE1 Over Current BE</Label>
+                                                            <p className={cn(
+                                                                "text-sm font-semibold font-mono h-8 flex items-center mt-1",
+                                                                data.budgetEstimateNextYear && history?.currentYearBE
+                                                                    ? (((data.budgetEstimateNextYear - history.currentYearBE) / history.currentYearBE) < 0 ? "text-red-600" : "text-slate-800")
+                                                                    : "text-slate-800"
+                                                            )}>
+                                                                {history?.currentYearBE && history.currentYearBE > 0 && data.budgetEstimateNextYear
+                                                                    ? `${(((data.budgetEstimateNextYear - history.currentYearBE) / history.currentYearBE) * 100).toFixed(1)}%`
+                                                                    : '—'}
+                                                            </p>
+                                                        </div>
+                                                        {/* Calculated Field */}
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">% BE1 Over Current RE</Label>
+                                                            <p className={cn(
+                                                                "text-sm font-semibold font-mono h-8 flex items-center mt-1",
+                                                                ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) > 0 && data.budgetEstimateNextYear
+                                                                    ? (((data.budgetEstimateNextYear - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) / ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) < 0 ? "text-red-600" : "text-slate-800")
+                                                                    : "text-slate-800"
+                                                            )}>
+                                                                {((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) > 0 && data.budgetEstimateNextYear
+                                                                    ? `${(((data.budgetEstimateNextYear - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) / ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) * 100).toFixed(1)}%`
+                                                                    : '—'}
+                                                            </p>
+                                                        </div>
+                                                        {/* Editable Field */}
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide leading-tight">BE {FY.nextPlus1} (BE2)</Label>
+                                                            <Input
+                                                                type="number"
+                                                                value={data.forwardEstimateY2 || ''}
+                                                                onChange={(e) => updateFormData(item.id, 'forwardEstimateY2', parseFloat(e.target.value) || 0)}
+                                                                placeholder="0"
                                                                 disabled={isSubmitted}
-                                                            >
-                                                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
-                                                                <SelectContent>
-                                                                    {SDG_TARGETS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                                                                </SelectContent>
-                                                            </Select>
+                                                                className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
+                                                            />
                                                         </div>
-                                                        <div>
-                                                            <Label className="text-xs text-slate-500">Gender Tag</Label>
-                                                            <Select
-                                                                value={data.genderTag}
-                                                                onValueChange={(v) => updateFormData(item.id, 'genderTag', v)}
+                                                        {/* Editable Field */}
+                                                        <div className="flex flex-col">
+                                                            <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide leading-tight">BE {FY.nextPlus2} (BE3)</Label>
+                                                            <Input
+                                                                type="number"
+                                                                value={data.forwardEstimateY3 || ''}
+                                                                onChange={(e) => updateFormData(item.id, 'forwardEstimateY3', parseFloat(e.target.value) || 0)}
+                                                                placeholder="0"
                                                                 disabled={isSubmitted}
-                                                            >
-                                                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
-                                                                <SelectContent>
-                                                                    {GENDER_TAGS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-                                                                </SelectContent>
-                                                            </Select>
+                                                                className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
+                                                            />
                                                         </div>
-                                                        <div>
-                                                            <Label className="text-xs text-slate-500">Geography</Label>
-                                                            <Select
-                                                                value={data.geographyTag}
-                                                                onValueChange={(v) => updateFormData(item.id, 'geographyTag', v)}
-                                                                disabled={isSubmitted}
-                                                            >
-                                                                <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
-                                                                <SelectContent>
-                                                                    {GEOGRAPHY_TAGS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </div>
-                                                        <div className="flex items-end">
-                                                            <label className="flex items-center gap-2 h-10 cursor-pointer">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={data.scstTag}
-                                                                    onChange={(e) => updateFormData(item.id, 'scstTag', e.target.checked)}
-                                                                    disabled={isSubmitted}
-                                                                    className="w-4 h-4 rounded border-slate-300"
-                                                                />
-                                                                <span className="text-sm text-slate-700">SC/ST Component</span>
-                                                            </label>
-                                                        </div>
+                                                    </div>
+
+                                                    {/* Row 3: DDO Remarks - Editable */}
+                                                    <div className="pt-3">
+                                                        <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide">DDO Remarks</Label>
+                                                        <textarea
+                                                            value={data.remarks || ''}
+                                                            onChange={(e) => updateFormData(item.id, 'remarks', e.target.value)}
+                                                            onInput={(e) => {
+                                                                const target = e.target as HTMLTextAreaElement;
+                                                                target.style.height = 'auto';
+                                                                target.style.height = `${Math.max(48, target.scrollHeight)}px`;
+                                                            }}
+                                                            onFocus={(e) => {
+                                                                const target = e.target as HTMLTextAreaElement;
+                                                                if (!target.value) {
+                                                                    target.style.height = '80px';
+                                                                }
+                                                            }}
+                                                            onBlur={(e) => {
+                                                                const target = e.target as HTMLTextAreaElement;
+                                                                if (!target.value) {
+                                                                    target.style.height = '48px';
+                                                                }
+                                                            }}
+                                                            placeholder="Enter remarks/justification (optional)..."
+                                                            disabled={isSubmitted}
+                                                            className="w-full min-h-[48px] px-3 py-2 text-sm border border-blue-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-200 bg-blue-50 resize-none placeholder:text-slate-500 mt-1 transition-all duration-200"
+                                                            maxLength={2000}
+                                                        />
+                                                    </div>
+
+                                                    {/* Actions Row - Separate line */}
+                                                    <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-slate-200">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-9 gap-2 border-slate-300 text-slate-600 hover:bg-slate-50"
+                                                            onClick={() => handleAuditClick(item)}
+                                                        >
+                                                            <History size={14} />
+                                                            Audit Trail
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-9 gap-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                                                            onClick={() => handleAssetClick(item)}
+                                                            disabled={isSubmitted}
+                                                        >
+                                                            <Package size={14} />
+                                                            Assets
+                                                            {assetData[item.id]?.length > 0 && (
+                                                                <span className="text-xs bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full">
+                                                                    {assetData[item.id].length}
+                                                                </span>
+                                                            )}
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="h-9 gap-2"
+                                                            onClick={() => handleSaveItem(item.id, item.scheme)}
+                                                            disabled={isSubmitted}
+                                                        >
+                                                            <Save size={14} /> Save Draft
+                                                        </Button>
+                                                        {isSubmitted && (
+                                                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-100 text-emerald-700 text-sm font-medium">
+                                                                <Check size={14} />
+                                                                Submitted
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </div>
 
-                                                {/* Remarks */}
-                                                <div>
-                                                    <Label className="text-xs text-slate-500">Remarks / Justification</Label>
-                                                    <Textarea
-                                                        value={data.creatorRemarks}
-                                                        onChange={(e) => updateFormData(item.id, 'creatorRemarks', e.target.value)}
-                                                        placeholder="Add any remarks or justification for this estimation..."
-                                                        disabled={isSubmitted}
-                                                        className="mt-1"
-                                                        rows={2}
-                                                    />
-                                                </div>
-
-                                                {/* Breakup Section */}
-                                                {needsBreakup && (
-                                                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-2">
-                                                                <Layers className="text-blue-600" size={18} />
-                                                                <span className="font-medium text-blue-800">Item-wise Breakup Required</span>
-                                                                {breakupData[item.id]?.length > 0 && (
-                                                                    <span className="bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full text-xs font-semibold">
-                                                                        {breakupData[item.id].length} items
-                                                                    </span>
-                                                                )}
+                                                {/* Expanded Section */}
+                                                {isExpanded && (
+                                                    <div className="px-5 py-4 border-t border-slate-100 space-y-5">
+                                                        {/* Warning for ceiling exceed */}
+                                                        {exceedsCeiling && (
+                                                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-3">
+                                                                <AlertTriangle className="text-amber-500 flex-shrink-0 mt-0.5" size={18} />
+                                                                <div>
+                                                                    <p className="text-sm font-medium text-amber-800">Budget exceeds ceiling limit</p>
+                                                                    <p className="text-xs text-amber-600">Ceiling: {formatCurrency(item.ceilingLimit || 0)}. Please provide justification below.</p>
+                                                                </div>
                                                             </div>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="bg-white"
-                                                                onClick={() => handleBreakupClick(item)}
-                                                                disabled={isSubmitted}
-                                                            >
-                                                                {breakupData[item.id]?.length > 0 ? 'Edit Breakup' : 'Add Breakup'}
-                                                            </Button>
+                                                        )}
+
+                                                        {/* Outcome Budgeting */}
+                                                        <div>
+                                                            <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                                                                <Target size={16} className="text-blue-500" />
+                                                                Outcome Budgeting Tags
+                                                            </h4>
+                                                            <div className="grid grid-cols-3 gap-4">
+                                                                <div>
+                                                                    <Label className="text-xs text-slate-500">Outcome Category</Label>
+                                                                    <Select
+                                                                        value={data.outcomeCategory}
+                                                                        onValueChange={(v) => updateFormData(item.id, 'outcomeCategory', v)}
+                                                                        disabled={isSubmitted}
+                                                                    >
+                                                                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {OUTCOME_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                </div>
+                                                                <div>
+                                                                    <Label className="text-xs text-slate-500">SDG Goal</Label>
+                                                                    <Select
+                                                                        value={data.sdgGoal}
+                                                                        onValueChange={(v) => updateFormData(item.id, 'sdgGoal', v)}
+                                                                        disabled={isSubmitted}
+                                                                    >
+                                                                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {SDG_GOALS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                </div>
+                                                                <div>
+                                                                    <Label className="text-xs text-slate-500">SDG Target</Label>
+                                                                    <Select
+                                                                        value={data.sdgTarget}
+                                                                        onValueChange={(v) => updateFormData(item.id, 'sdgTarget', v)}
+                                                                        disabled={isSubmitted}
+                                                                    >
+                                                                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {SDG_TARGETS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                </div>
+                                                                <div>
+                                                                    <Label className="text-xs text-slate-500">Gender Tag</Label>
+                                                                    <Select
+                                                                        value={data.genderTag}
+                                                                        onValueChange={(v) => updateFormData(item.id, 'genderTag', v)}
+                                                                        disabled={isSubmitted}
+                                                                    >
+                                                                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {GENDER_TAGS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                </div>
+                                                                <div>
+                                                                    <Label className="text-xs text-slate-500">Geography</Label>
+                                                                    <Select
+                                                                        value={data.geographyTag}
+                                                                        onValueChange={(v) => updateFormData(item.id, 'geographyTag', v)}
+                                                                        disabled={isSubmitted}
+                                                                    >
+                                                                        <SelectTrigger className="mt-1"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {GEOGRAPHY_TAGS.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                </div>
+                                                                <div className="flex items-end">
+                                                                    <label className="flex items-center gap-2 h-10 cursor-pointer">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={data.scstTag}
+                                                                            onChange={(e) => updateFormData(item.id, 'scstTag', e.target.checked)}
+                                                                            disabled={isSubmitted}
+                                                                            className="w-4 h-4 rounded border-slate-300"
+                                                                        />
+                                                                        <span className="text-sm text-slate-700">SC/ST Component</span>
+                                                                    </label>
+                                                                </div>
+                                                            </div>
                                                         </div>
+
+                                                        {/* Remarks */}
+                                                        <div>
+                                                            <Label className="text-xs text-slate-500">Remarks / Justification</Label>
+                                                            <Textarea
+                                                                value={data.creatorRemarks}
+                                                                onChange={(e) => updateFormData(item.id, 'creatorRemarks', e.target.value)}
+                                                                placeholder="Add any remarks or justification for this estimation..."
+                                                                disabled={isSubmitted}
+                                                                className="mt-1"
+                                                                rows={2}
+                                                            />
+                                                        </div>
+
+                                                        {/* Breakup Section */}
+                                                        {needsBreakup && (
+                                                            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Layers className="text-blue-600" size={18} />
+                                                                        <span className="font-medium text-blue-800">Item-wise Breakup Required</span>
+                                                                        {breakupData[item.id]?.length > 0 && (
+                                                                            <span className="bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full text-xs font-semibold">
+                                                                                {breakupData[item.id].length} items
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="bg-white"
+                                                                        onClick={() => handleBreakupClick(item)}
+                                                                        disabled={isSubmitted}
+                                                                    >
+                                                                        {breakupData[item.id]?.length > 0 ? 'Edit Breakup' : 'Add Breakup'}
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
-                                            </div>
+                                            </>
                                         )}
                                     </CardContent>
                                 </Card>
