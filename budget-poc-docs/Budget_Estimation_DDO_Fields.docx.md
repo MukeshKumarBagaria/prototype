@@ -15,39 +15,6 @@
 | 27 | 001 | IT & Computer Purchase Capital |
 | 31 | 007 | Transportation Service |
 
-10. **Field Table**
-
-| Field Name | Description | UI Component | Field Type | Field Length | Mandatory (Y/N) | *Validation Rule* | *Remarks* |
-| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
-| Demand No | Demand Number mapped to Budget Line | Display Field | Auto-Fetched | 3 digits | Y | None | Fetched from HoA Master |
-| Major Head | Major classification | Display Field | Auto-Fetched | 4 digits | Y | None | Read-only |
-| Sub Major Head | Sub-major classification | Display Field | Auto-Fetched | 2 digits | Y | None | Read-only |
-| Minor Head | Minor classification | Display Field | Auto-Fetched | 3 digits | Y | None | Read-only |
-| Segment Head | Segment code | Display Field | Auto-Fetched | 4 digits | Y | None | Read-only |
-| Scheme | Scheme mapped with budget line | Display Field | Auto-Fetched | N/A | Y | None | Read-only |
-| Project | Project Code (if applicable) | Display Field | Auto-Fetched | N/A | N | None | Optional |
-| Object Head | Accounting object head | Display Field | Auto-Fetched | 2 digits | Y | None | Read-only |
-| Detail Head | Detail object head | Display Field | Auto-Fetched | 3 digits | Y | None | Read-only |
-| Charged / Voted | Indicates nature of expenditure | Display Field | Auto-Fetched | N/A | Y | None | Read-only |
-| Previous 5 Years Actuals | Prior year expenditure history | Table | Numeric | N/A | N | Auto-fetched numbers | Displayed on toggle |
-| Budget Estimate (Previous FY) | BE of the last FY | Display | Numeric | 15 | N | ≥ 0 | Fetched from AG/VLC |
-| Expenditure (Previous FY) | Actual expenditure for the last FY | Display | Numeric | 15 | N | ≥ 0 | Auto-fetched |
-| Budget Estimate (Current FY) | Approved BE for current financial year | Display | Numeric | 15 | Y | ≥ 0 | Auto-fetched |
-| Budget Allotment (Current FY) | Allotment released to DDO | Display | Numeric | 15 | N | ≥ 0 | Auto-fetched |
-| Budget Re-appropriation | Additions/reductions during FY | Display | Numeric | 15 | N | ≥ 0 | Auto-fetched |
-| Supplementary Budget | Read-only field showing the total supplementary amount sanctioned for the current FY | Display Field | Numeric | 15 | N | Cannot be edited | Auto-fetched from Supplementary Budget records |
-| Total Budget Estimate (Current FY) | Sum of BE \+ RA \+ Supplementary | Display | Numeric | 15 | Y | ≥ 0 | Formula: BE \+ RA \+ Suppl. |
-| Expenditure Upto Cutoff Date | Actual expenditure till system-defined cutoff (e.g., 31 Aug) | Display | Numeric | 15 | Y | ≥ 0 | Auto-fetched |
-| Proposed Expenditure (Remaining Months) | DDO-projected expenditure for remaining FY | Input | Numeric | 15 | Y | ≥ 0 | Used for Total RE calculation |
-| Total Revised Estimate (RE) | Total RE for the current year | Display | Numeric | 15 | Y | ≥ 0 | Formula: RE \= Expenditure Till Date \+ Proposed Remaining Expenditure |
-| % RE Over BE (Previous FY) | Percentage difference of RE over Previous Year BE | Display | Numeric | 5 | N | Auto-calculated | Formula: ((RE – PreviousYearBE) / PreviousYearBE) × 100 |
-| BE for Next FY (BE1) | Main budget estimate for next FY | Input | Numeric | 15 | Y | ≥ 0 | Entered by DDO/Edited by BCO |
-| % BE1 Over Current BE | Variance % from current BE | Display | Numeric | 10 | N | Auto | Formula: ((BE1 – CurrentBE) / CurrentBE) × 100 |
-| % BE1 Over Current RE | Variance % from current RE | Display | Numeric | 10 | N | Auto | Formula: ((BE1 – CurrentRE) / CurrentRE) × 100 |
-| BE for Next FY \+1 (BE2) | Budget projection for subsequent year | Input | Numeric | 15 | Y | ≥ 0 | MTE |
-| BE for Next FY \+2 (BE3) | Two-year forward budget estimate | Input | Numeric | 15 | Y | ≥ 0 | MTE |
-| DDO Remarks | General explanation | Text Area | Text | 2000 | N | None | Optional |
-| Supporting Documents | Additional docs | File Upload | PDF/JPG | 10MB | N | None | Optional |
 
 **Fields for Basic Pay (For Object Code- 11, 12 and 19 and Detail Head 001\)**
 
