@@ -722,19 +722,19 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                                         <div className="flex flex-col">
                                                             <Label className="text-xs text-blue-900 font-semibold uppercase tracking-wide leading-tight">BE {FY.next} (BE1) *</Label>
                                                             {requiresBreakup(item.objectHead, item.detailHead) ? (
-                                                                // Breakup-required items: Show clickable field that opens popup
+                                                                // Breakup-required items: Show clickable field that opens popup - TEAL styling for differentiation
                                                                 <div
                                                                     onClick={() => !isSubmitted && handleBreakupClick(item)}
                                                                     className={cn(
-                                                                        "h-8 px-3 font-numeric text-sm border rounded-md mt-1 flex items-center cursor-pointer transition-all",
+                                                                        "h-8 px-3 font-numeric text-sm border-2 border-dashed rounded-md mt-1 flex items-center cursor-pointer transition-all gap-1",
                                                                         isSubmitted
-                                                                            ? "bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed"
-                                                                            : "bg-blue-50 border-blue-300 text-blue-700 hover:border-blue-400 hover:bg-blue-100"
+                                                                            ? "bg-slate-100 border-slate-300 text-slate-500 cursor-not-allowed"
+                                                                            : "bg-teal-50 border-teal-400 text-teal-700 hover:border-teal-500 hover:bg-teal-100"
                                                                     )}
                                                                 >
                                                                     {data.budgetEstimateNextYear > 0
                                                                         ? formatCurrency(data.budgetEstimateNextYear)
-                                                                        : "Add breakup →"}
+                                                                        : <><Layers size={14} className="text-teal-500" /> Add breakup</>}
                                                                 </div>
                                                             ) : (
                                                                 // Non-breakup items: Normal editable input

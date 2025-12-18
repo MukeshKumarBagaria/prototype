@@ -5,7 +5,7 @@ import { BudgetLineItem, HistoricalData, EstimationRecord } from '@/data/budget-
 import { formatCurrency, MOCK_HISTORICAL_DATA } from '@/data/budget-expenditure/mockData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, ArrowLeft, Save, Check, Columns, Eye, EyeOff, Upload, Download, RotateCcw, ArrowRight, CheckCircle2, Clock } from 'lucide-react';
+import { Search, Filter, ArrowLeft, Save, Check, Columns, Eye, EyeOff, Upload, Download, RotateCcw, ArrowRight, CheckCircle2, Clock, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -482,17 +482,17 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
                                                 // Check if this item requires breakup
                                                 if (requiresBreakup(item.objectHead, item.detailHead)) {
                                                     return (
-                                                        <td key={colKey} className="px-1 py-1 bg-blue-50/50">
+                                                        <td key={colKey} className="px-1 py-1 bg-teal-50/50">
                                                             <div
                                                                 onClick={() => !isSubmitted && (() => { setActiveBreakupLine(item); setBreakupModalOpen(true); })()}
                                                                 className={cn(
-                                                                    "h-7 px-2 text-xs font-numeric border rounded flex items-center justify-end cursor-pointer transition-all",
+                                                                    "h-7 px-2 text-xs font-numeric border-2 border-dashed rounded flex items-center justify-end cursor-pointer transition-all gap-1",
                                                                     isSubmitted
-                                                                        ? "bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed"
-                                                                        : "bg-white border-blue-200 text-blue-700 hover:border-blue-400 hover:bg-blue-50"
+                                                                        ? "bg-slate-100 border-slate-300 text-slate-500 cursor-not-allowed"
+                                                                        : "bg-white border-teal-400 text-teal-700 hover:border-teal-500 hover:bg-teal-50"
                                                                 )}
                                                             >
-                                                                {data.budgetEstimateNextYear > 0 ? formatCurrency(data.budgetEstimateNextYear) : "Add →"}
+                                                                {data.budgetEstimateNextYear > 0 ? formatCurrency(data.budgetEstimateNextYear) : <><Layers size={12} className="text-teal-500" /> Add</>}
                                                             </div>
                                                         </td>
                                                     );
