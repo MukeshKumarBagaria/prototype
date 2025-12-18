@@ -45,7 +45,7 @@ export function BudgetHeadHoverCard({ children, budgetLine, history }: BudgetHea
             >
                 {/* Header */}
                 <div className="bg-slate-50 p-4 border-b border-slate-100">
-                    <p className="font-mono text-xs text-slate-500 mb-1">{budgetLine.budgetHead}</p>
+                    <p className="font-numeric text-xs text-slate-500 mb-1">{budgetLine.budgetHead}</p>
                     <p className="font-semibold text-slate-900 text-sm">{budgetLine.scheme}</p>
                 </div>
 

@@ -72,7 +72,7 @@ export function TrendAnalysisPopup({ budgetLine, history }: TrendAnalysisPopupPr
                             <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-5">
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1">
-                                        <p className="font-mono text-xs text-blue-300 mb-1">{budgetLine.budgetHead}</p>
+                                        <p className="font-numeric text-xs text-blue-300 mb-1">{budgetLine.budgetHead}</p>
                                         <h3 className="font-bold text-white text-lg leading-tight mb-3">
                                             {budgetLine.scheme}
                                         </h3>

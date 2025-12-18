@@ -77,7 +77,7 @@ export function AuditTrailModal({ isOpen, onOpenChange, budgetLine, auditTrail }
                             </div>
                             <div>
                                 <h2 className="text-lg font-bold text-white">Audit Trail</h2>
-                                <p className="text-sm text-slate-300 font-mono">{budgetLine.budgetHead}</p>
+                                <p className="text-sm text-slate-300 font-numeric">{budgetLine.budgetHead}</p>
                             </div>
                         </div>
                         <Button

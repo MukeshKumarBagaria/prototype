@@ -152,7 +152,7 @@ export function BreakupModal({ budgetLine, isOpen, onOpenChange, onSave, initial
                         <div className="flex items-center gap-2">
                             <Calculator className="text-blue-600" size={18} />
                             <DialogTitle className="text-base">{typeConfig.label}</DialogTitle>
-                            <span className="text-xs text-slate-500 font-mono ml-2">{budgetLine.objectHead}/{budgetLine.detailHead}</span>
+                            <span className="text-xs text-slate-500 font-numeric ml-2">{budgetLine.objectHead}/{budgetLine.detailHead}</span>
                         </div>
                         <div className="text-right mr-4">
                             <span className="text-xs text-slate-500 uppercase mr-2">Total:</span>

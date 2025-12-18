@@ -119,3 +119,42 @@
 .font-primary {
   font-family: var(--font-primary);
 }
+
+/* ============================================
+   NUMERIC/FINANCIAL DATA STYLING
+   Use these classes for tables, amounts, and financial figures
+   ============================================ */
+
+/* Utility class for numeric/financial data - uses tabular numbers for clean alignment */
+.font-numeric {
+  font-family: var(--font-primary);
+  font-feature-settings: 'tnum' 1, 'lnum' 1;  /* Tabular numbers + lining figures */
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0.01em;
+}
+
+/* Apply tabular numbers to all number inputs for consistency */
+input[type="number"],
+input[inputmode="numeric"],
+input[inputmode="decimal"] {
+  font-family: var(--font-primary);
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Financial amounts styling - slightly bolder for better readability */
+.financial-amount {
+  font-family: var(--font-primary);
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Table cells with numbers should use tabular figures */
+td[data-type="number"],
+td[data-type="currency"],
+.tabular-nums {
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  font-variant-numeric: tabular-nums lining-nums;
+}

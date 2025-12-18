@@ -457,27 +457,27 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
                                             case 'srNo':
                                                 return <td key={colKey} className="px-2 py-2 sticky left-0 z-10 bg-inherit font-bold text-blue-600 text-center">{item.srNo}</td>;
                                             case 'budgetHead':
-                                                return <td key={colKey} className="px-2 py-2 sticky left-12 z-10 bg-inherit border-r border-slate-200"><code className="text-xs font-mono font-semibold text-slate-900">{item.budgetHead}</code></td>;
+                                                return <td key={colKey} className="px-2 py-2 sticky left-12 z-10 bg-inherit border-r border-slate-200"><code className="text-xs font-numeric font-semibold text-slate-900">{item.budgetHead}</code></td>;
                                             case 'schemeNomenclature':
                                                 return <td key={colKey} className="px-2 py-2 text-slate-700 font-medium truncate max-w-[160px]" title={item.schemeNomenclature || item.scheme}>{item.schemeNomenclature || item.scheme}</td>;
                                             case 'chargedOrVoted':
                                                 return <td key={colKey} className="px-2 py-2 text-center"><span className={cn("text-xs font-bold px-1.5 py-0.5 rounded", item.chargedOrVoted === 'Charged' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-600')}>{item.chargedOrVoted === 'Charged' ? 'C' : 'V'}</span></td>;
                                             case 'bePrev':
-                                                return <td key={colKey} className="px-2 py-2 text-right font-mono text-slate-700">{formatCurrency(history?.fy1 || 0)}</td>;
+                                                return <td key={colKey} className="px-2 py-2 text-right font-numeric text-slate-700">{formatCurrency(history?.fy1 || 0)}</td>;
                                             case 'expPrev':
-                                                return <td key={colKey} className="px-2 py-2 text-right font-mono text-slate-700">{formatCurrency(history?.actualTillDate || 0)}</td>;
+                                                return <td key={colKey} className="px-2 py-2 text-right font-numeric text-slate-700">{formatCurrency(history?.actualTillDate || 0)}</td>;
                                             case 'beCurr':
-                                                return <td key={colKey} className="px-2 py-2 text-right font-mono text-slate-700">{formatCurrency(history?.currentYearBE || 0)}</td>;
+                                                return <td key={colKey} className="px-2 py-2 text-right font-numeric text-slate-700">{formatCurrency(history?.currentYearBE || 0)}</td>;
                                             case 'allotCurr':
-                                                return <td key={colKey} className="px-2 py-2 text-right font-mono text-slate-700">{formatCurrency(history?.currentYearBE || 0)}</td>;
+                                                return <td key={colKey} className="px-2 py-2 text-right font-numeric text-slate-700">{formatCurrency(history?.currentYearBE || 0)}</td>;
                                             case 'expCutoff':
-                                                return <td key={colKey} className="px-2 py-2 text-right font-mono text-slate-700">{formatCurrency(history?.actualTillDate || 0)}</td>;
+                                                return <td key={colKey} className="px-2 py-2 text-right font-numeric text-slate-700">{formatCurrency(history?.actualTillDate || 0)}</td>;
                                             case 'proposedExp':
-                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.reviseEstimateCY || ''} onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-mono border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
+                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.reviseEstimateCY || ''} onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
                                             case 'totalRE':
-                                                return <td key={colKey} className="px-2 py-2 text-right font-mono font-semibold text-slate-900">{formatCurrency(totalRE)}</td>;
+                                                return <td key={colKey} className="px-2 py-2 text-right font-numeric font-semibold text-slate-900">{formatCurrency(totalRE)}</td>;
                                             case 'reOverBE':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-mono text-xs", reOverBE && parseFloat(reOverBE) < 0 ? "text-red-600" : "text-slate-600")}>{reOverBE ? `${reOverBE}%` : '—'}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-xs", reOverBE && parseFloat(reOverBE) < 0 ? "text-red-600" : "text-slate-600")}>{reOverBE ? `${reOverBE}%` : '—'}</td>;
                                             case 'be1':
                                                 // Check if this item requires breakup
                                                 if (requiresBreakup(item.objectHead, item.detailHead)) {
@@ -486,7 +486,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
                                                             <div
                                                                 onClick={() => !isSubmitted && (() => { setActiveBreakupLine(item); setBreakupModalOpen(true); })()}
                                                                 className={cn(
-                                                                    "h-7 px-2 text-xs font-mono border rounded flex items-center justify-end cursor-pointer transition-all",
+                                                                    "h-7 px-2 text-xs font-numeric border rounded flex items-center justify-end cursor-pointer transition-all",
                                                                     isSubmitted
                                                                         ? "bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed"
                                                                         : "bg-white border-blue-200 text-blue-700 hover:border-blue-400 hover:bg-blue-50"
@@ -497,13 +497,13 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
                                                         </td>
                                                     );
                                                 }
-                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.budgetEstimateNextYear || ''} onChange={(e) => updateFormData(item.id, 'budgetEstimateNextYear', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-mono border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
+                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.budgetEstimateNextYear || ''} onChange={(e) => updateFormData(item.id, 'budgetEstimateNextYear', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
                                             case 'be1OverBE':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-mono text-xs", be1OverBE && parseFloat(be1OverBE) < 0 ? "text-red-600" : "text-slate-600")}>{be1OverBE ? `${be1OverBE}%` : '—'}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-xs", be1OverBE && parseFloat(be1OverBE) < 0 ? "text-red-600" : "text-slate-600")}>{be1OverBE ? `${be1OverBE}%` : '—'}</td>;
                                             case 'be2':
-                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.forwardEstimateY2 || ''} onChange={(e) => updateFormData(item.id, 'forwardEstimateY2', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-mono border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
+                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.forwardEstimateY2 || ''} onChange={(e) => updateFormData(item.id, 'forwardEstimateY2', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
                                             case 'be3':
-                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.forwardEstimateY3 || ''} onChange={(e) => updateFormData(item.id, 'forwardEstimateY3', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-mono border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
+                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.forwardEstimateY3 || ''} onChange={(e) => updateFormData(item.id, 'forwardEstimateY3', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
                                             case 'remarks':
                                                 return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="text" value={data.remarks || ''} onChange={(e) => updateFormData(item.id, 'remarks', e.target.value)} disabled={isSubmitted} className="h-7 text-xs border-blue-200 focus:border-blue-400 bg-white" placeholder="Remarks..." /></td>;
                                             default:

@@ -8,6 +8,11 @@ module.exports = {
     ],
     theme: {
         extend: {
+            fontFamily: {
+                primary: ['var(--font-primary)', 'Noto Sans', 'sans-serif'],
+                sans: ['var(--font-primary)', 'Noto Sans', 'sans-serif'],
+                numeric: ['var(--font-primary)', 'Noto Sans', 'sans-serif'],
+            },
             colors: {
                 background: 'hsl(var(--background))',
                 foreground: 'hsl(var(--foreground))',

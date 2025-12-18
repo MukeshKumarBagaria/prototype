@@ -447,7 +447,7 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                         <Input
                             type="text"
                             placeholder="Sr. No."
-                            className="w-24 h-12 bg-white border-slate-200 rounded-lg text-center font-mono font-semibold"
+                            className="w-24 h-12 bg-white border-slate-200 rounded-lg text-center font-numeric font-semibold"
                             value={serialSearch}
                             onChange={(e) => handleSerialChange(e.target.value)}
                         />
@@ -587,7 +587,7 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                                     </span>
                                                     {/* Budget Line Code with Charged/Voted and Scheme - All on one line */}
                                                     <div className="flex items-center gap-3 flex-wrap">
-                                                        <code className="text-lg font-bold font-mono text-slate-900 tracking-wide">
+                                                        <code className="text-lg font-bold font-numeric text-slate-900 tracking-wide">
                                                             <HighlightText text={item.budgetHead || ''} highlight={searchQuery} />
                                                         </code>
                                                         <span className={cn(
@@ -625,7 +625,7 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                                                 </span>
                                                             )}
                                                             {data.budgetEstimateNextYear > 0 && (
-                                                                <span className="text-xs font-mono text-slate-600">
+                                                                <span className="text-xs font-numeric text-slate-600">
                                                                     BE: {formatCurrency(data.budgetEstimateNextYear)}
                                                                 </span>
                                                             )}
@@ -656,35 +656,35 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                                     <div className="grid grid-cols-8 gap-x-4 gap-y-1 pb-3 border-b border-slate-200">
                                                         <div className="flex flex-col">
                                                             <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Budget Estimate ({FY.prev})</Label>
-                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.fy1 || 0)}</p>
+                                                            <p className="text-sm font-semibold text-slate-800 font-numeric mt-1 h-8 flex items-center">{formatCurrency(history?.fy1 || 0)}</p>
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Expenditure ({FY.prev})</Label>
-                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.actualTillDate || 0)}</p>
+                                                            <p className="text-sm font-semibold text-slate-800 font-numeric mt-1 h-8 flex items-center">{formatCurrency(history?.actualTillDate || 0)}</p>
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Budget Estimate ({FY.curr})</Label>
-                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
+                                                            <p className="text-sm font-semibold text-slate-800 font-numeric mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Budget Allotment ({FY.curr})</Label>
-                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
+                                                            <p className="text-sm font-semibold text-slate-800 font-numeric mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Reappropriation</Label>
-                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">₹0</p>
+                                                            <p className="text-sm font-semibold text-slate-800 font-numeric mt-1 h-8 flex items-center">₹0</p>
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Supplementary Budget</Label>
-                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">₹0</p>
+                                                            <p className="text-sm font-semibold text-slate-800 font-numeric mt-1 h-8 flex items-center">₹0</p>
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Total BE ({FY.curr})</Label>
-                                                            <p className="text-sm font-bold text-slate-900 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
+                                                            <p className="text-sm font-bold text-slate-900 font-numeric mt-1 h-8 flex items-center">{formatCurrency(history?.currentYearBE || 0)}</p>
                                                         </div>
                                                         <div className="flex flex-col">
                                                             <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Exp. Upto Cutoff Date</Label>
-                                                            <p className="text-sm font-semibold text-slate-800 font-mono mt-1 h-8 flex items-center">{formatCurrency(history?.actualTillDate || 0)}</p>
+                                                            <p className="text-sm font-semibold text-slate-800 font-numeric mt-1 h-8 flex items-center">{formatCurrency(history?.actualTillDate || 0)}</p>
                                                         </div>
                                                     </div>
 
@@ -699,20 +699,20 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                                                 onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', parseFloat(e.target.value) || 0)}
                                                                 placeholder="0"
                                                                 disabled={isSubmitted}
-                                                                className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
+                                                                className="h-8 font-numeric text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
                                                             />
                                                         </div>
                                                         {/* Calculated Field */}
                                                         <div className="flex flex-col">
                                                             <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">Total Revised Estimate (RE)</Label>
-                                                            <p className="text-sm font-bold text-slate-900 font-mono h-8 flex items-center mt-1">
+                                                            <p className="text-sm font-bold text-slate-900 font-numeric h-8 flex items-center mt-1">
                                                                 {formatCurrency((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))}
                                                             </p>
                                                         </div>
                                                         {/* Calculated Field - % RE Over BE moved here */}
                                                         <div className="flex flex-col">
                                                             <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">% RE Over BE ({FY.prev})</Label>
-                                                            <p className="text-sm font-semibold text-slate-800 font-mono h-8 flex items-center mt-1">
+                                                            <p className="text-sm font-semibold text-slate-800 font-numeric h-8 flex items-center mt-1">
                                                                 {history?.fy1 && history.fy1 > 0
                                                                     ? `${((((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) - history.fy1) / history.fy1 * 100).toFixed(1)}%`
                                                                     : '—'}
@@ -726,7 +726,7 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                                                 <div
                                                                     onClick={() => !isSubmitted && handleBreakupClick(item)}
                                                                     className={cn(
-                                                                        "h-8 px-3 font-mono text-sm border rounded-md mt-1 flex items-center cursor-pointer transition-all",
+                                                                        "h-8 px-3 font-numeric text-sm border rounded-md mt-1 flex items-center cursor-pointer transition-all",
                                                                         isSubmitted
                                                                             ? "bg-slate-100 border-slate-200 text-slate-500 cursor-not-allowed"
                                                                             : "bg-blue-50 border-blue-300 text-blue-700 hover:border-blue-400 hover:bg-blue-100"
@@ -744,7 +744,7 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                                                     onChange={(e) => updateFormData(item.id, 'budgetEstimateNextYear', parseFloat(e.target.value) || 0)}
                                                                     placeholder="0"
                                                                     disabled={isSubmitted}
-                                                                    className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
+                                                                    className="h-8 font-numeric text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
                                                                 />
                                                             )}
                                                         </div>
@@ -752,7 +752,7 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                                         <div className="flex flex-col">
                                                             <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">% BE1 Over Current BE</Label>
                                                             <p className={cn(
-                                                                "text-sm font-semibold font-mono h-8 flex items-center mt-1",
+                                                                "text-sm font-semibold font-numeric h-8 flex items-center mt-1",
                                                                 data.budgetEstimateNextYear && history?.currentYearBE
                                                                     ? (((data.budgetEstimateNextYear - history.currentYearBE) / history.currentYearBE) < 0 ? "text-red-600" : "text-slate-800")
                                                                     : "text-slate-800"
@@ -766,7 +766,7 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                                         <div className="flex flex-col">
                                                             <Label className="text-xs text-slate-700 uppercase tracking-wide leading-tight font-medium">% BE1 Over Current RE</Label>
                                                             <p className={cn(
-                                                                "text-sm font-semibold font-mono h-8 flex items-center mt-1",
+                                                                "text-sm font-semibold font-numeric h-8 flex items-center mt-1",
                                                                 ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0)) > 0 && data.budgetEstimateNextYear
                                                                     ? (((data.budgetEstimateNextYear - ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) / ((history?.actualTillDate || 0) + (data.reviseEstimateCY || 0))) < 0 ? "text-red-600" : "text-slate-800")
                                                                     : "text-slate-800"
@@ -785,7 +785,7 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                                                 onChange={(e) => updateFormData(item.id, 'forwardEstimateY2', parseFloat(e.target.value) || 0)}
                                                                 placeholder="0"
                                                                 disabled={isSubmitted}
-                                                                className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
+                                                                className="h-8 font-numeric text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
                                                             />
                                                         </div>
                                                         {/* Editable Field */}
@@ -797,7 +797,7 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                                                                 onChange={(e) => updateFormData(item.id, 'forwardEstimateY3', parseFloat(e.target.value) || 0)}
                                                                 placeholder="0"
                                                                 disabled={isSubmitted}
-                                                                className="h-8 font-mono text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
+                                                                className="h-8 font-numeric text-sm border-blue-300 focus:border-blue-500 focus:ring-blue-200 bg-blue-50 mt-1"
                                                             />
                                                         </div>
                                                     </div>

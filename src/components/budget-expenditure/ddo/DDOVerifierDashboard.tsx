@@ -121,7 +121,7 @@ export function DDOVerifierDashboard() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="text-sm">
-                                                <p className="font-mono text-slate-700">{budgetLine?.budgetHead || `${budgetLine?.demandNo}-${budgetLine?.majorHead}-${budgetLine?.subMajorHead}-${budgetLine?.minorHead}-${budgetLine?.segmentHead}-${budgetLine?.ddoCode?.split('/')[1]}-${budgetLine?.chargedOrVoted === 'Charged' ? 'C' : 'V'}-${budgetLine?.objectHead}-${budgetLine?.detailHead}`}</p>
+                                                <p className="font-numeric text-slate-700">{budgetLine?.budgetHead || `${budgetLine?.demandNo}-${budgetLine?.majorHead}-${budgetLine?.subMajorHead}-${budgetLine?.minorHead}-${budgetLine?.segmentHead}-${budgetLine?.ddoCode?.split('/')[1]}-${budgetLine?.chargedOrVoted === 'Charged' ? 'C' : 'V'}-${budgetLine?.objectHead}-${budgetLine?.detailHead}`}</p>
                                             </div>
                                         </td>
 
