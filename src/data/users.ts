@@ -9,7 +9,7 @@ export interface User {
     department: string;
     location: string;
     lastLogin: string;
-    roles: ('creator' | 'verifier' | 'approver')[];
+    roles: ('creator' | 'verifier' | 'approver' | 'bco')[];
 }
 
 export const DUMMY_USERS: User[] = [
@@ -60,6 +60,18 @@ export const DUMMY_USERS: User[] = [
         location: "INDORE",
         lastLogin: "17 Dec, 2025 08:00",
         roles: ["verifier", "approver"]
+    },
+    {
+        userId: "bco001",
+        password: "bco123",
+        name: "KAVITA MALHOTRA",
+        designation: "Budget Controller",
+        post: "BCO Creator",
+        ddoCode: "0000442001",
+        department: "BUDGET CONTROLLING ORGANISATION",
+        location: "BHOPAL",
+        lastLogin: "17 Dec, 2025 11:00",
+        roles: ["bco"]
     }
 ];
 

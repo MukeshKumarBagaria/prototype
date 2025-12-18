@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, authenticateUser as authUser } from '@/data/users';
 
-type Role = 'creator' | 'verifier' | 'approver';
+type Role = 'creator' | 'verifier' | 'approver' | 'bco';
 
 interface AuthContextType {
     user: User | null;
@@ -128,6 +128,7 @@ export function getRoleDisplayName(role: Role): string {
         case 'creator': return 'DDO Creator';
         case 'verifier': return 'DDO Verifier';
         case 'approver': return 'DDO Approver';
+        case 'bco': return 'BCO Creator';
         default: return role;
     }
 }
@@ -138,6 +139,7 @@ export function getRoleRoute(role: Role): string {
         case 'creator': return '/budget/budget-expenditure/ddo-creator';
         case 'verifier': return '/budget/budget-expenditure/ddo-verifier';
         case 'approver': return '/budget/budget-expenditure/ddo-approver';
+        case 'bco': return '/budget/budget-expenditure/bco-creator';
         default: return '/budget/budget-expenditure/ddo-creator';
     }
 }

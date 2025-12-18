@@ -94,7 +94,7 @@ export function Navbar() {
         router.push('/login');
     };
 
-    const handleSwitchRole = (role: 'creator' | 'verifier' | 'approver') => {
+    const handleSwitchRole = (role: 'creator' | 'verifier' | 'approver' | 'bco') => {
         switchRole(role);
         router.push('/budget');
     };
