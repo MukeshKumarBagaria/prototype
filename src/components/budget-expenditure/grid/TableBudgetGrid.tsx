@@ -5,7 +5,7 @@ import { BudgetLineItem, HistoricalData, EstimationRecord } from '@/data/budget-
 import { formatCurrency, MOCK_HISTORICAL_DATA } from '@/data/budget-expenditure/mockData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, ArrowLeft, Save, Check, Columns, Eye, EyeOff, Upload, Download, RotateCcw, ArrowRight, CheckCircle2, Clock, Layers } from 'lucide-react';
+import { Search, Filter, ArrowLeft, Save, Check, Columns, Eye, EyeOff, Upload, Download, RotateCcw, ArrowRight, CheckCircle2, Clock, Layers, ArrowUpDown, ArrowUp, ArrowDown, Palette, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -70,13 +70,36 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
     const [activeBreakupLine, setActiveBreakupLine] = useState<BudgetLineItem | null>(null);
     const [breakupData, setBreakupData] = useState<Record<string, BreakupItem[]>>({});
 
-    // Column visibility state - all visible by default
+    // Column visibility state - all visible by default (removed chargedOrVoted)
     const [visibleColumns, setVisibleColumns] = useState<Set<string>>(new Set([
-        'srNo', 'budgetHead', 'schemeNomenclature', 'chargedOrVoted',
+        'srNo', 'budgetHead', 'schemeNomenclature',
         'bePrev', 'expPrev', 'beCurr', 'allotCurr', 'expCutoff',
         'proposedExp', 'totalRE', 'reOverBE', 'be1', 'be1OverBE',
         'be2', 'be3', 'remarks'
     ]));
+
+    // Sorting state
+    const [sortColumn, setSortColumn] = useState<string | null>(null);
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+    // Column coloring state
+    const [columnColors, setColumnColors] = useState<Record<string, string>>({});
+    const [showColorPicker, setShowColorPicker] = useState<string | null>(null);
+
+    // Column filter state
+    const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
+    const [activeFilterColumn, setActiveFilterColumn] = useState<string | null>(null);
+
+    // Available colors for column highlighting
+    const colorOptions = [
+        { name: 'None', value: '' },
+        { name: 'Blue', value: 'bg-blue-50' },
+        { name: 'Green', value: 'bg-green-50' },
+        { name: 'Yellow', value: 'bg-amber-50' },
+        { name: 'Purple', value: 'bg-violet-50' },
+        { name: 'Pink', value: 'bg-pink-50' },
+        { name: 'Cyan', value: 'bg-cyan-50' },
+    ];
 
     const getItemFormData = (itemId: string): ItemFormData => {
         return formData[itemId] || {
@@ -102,8 +125,33 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
         return MOCK_HISTORICAL_DATA.find(h => h.budgetLineItemId === itemId);
     };
 
+    // Helper to get cell value for sorting/filtering
+    const getCellValue = (item: BudgetLineItem, colKey: string): string | number => {
+        const data = getItemFormData(item.id);
+        const history = getHistory(item.id);
+        const totalRE = (history?.actualTillDate || 0) + (data.reviseEstimateCY || 0);
+
+        switch (colKey) {
+            case 'srNo': return item.srNo || '';
+            case 'budgetHead': return item.budgetHead || '';
+            case 'schemeNomenclature': return item.schemeNomenclature || item.scheme || '';
+            case 'bePrev': return history?.fy1 || 0;
+            case 'expPrev': return history?.actualTillDate || 0;
+            case 'beCurr': return history?.currentYearBE || 0;
+            case 'allotCurr': return history?.currentYearBE || 0;
+            case 'expCutoff': return history?.actualTillDate || 0;
+            case 'proposedExp': return data.reviseEstimateCY || 0;
+            case 'totalRE': return totalRE;
+            case 'be1': return data.budgetEstimateNextYear || 0;
+            case 'be2': return data.forwardEstimateY2 || 0;
+            case 'be3': return data.forwardEstimateY3 || 0;
+            case 'remarks': return data.remarks || '';
+            default: return '';
+        }
+    };
+
     const filteredItems = useMemo(() => {
-        return items.filter(item => {
+        let result = items.filter(item => {
             const est = estimations.find(e => e.budgetLineItemId === item.id);
             const query = searchQuery.toLowerCase().trim();
 
@@ -115,9 +163,33 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
                 item.schemeNomenclature?.toLowerCase().includes(query);
 
             const matchesStatus = statusFilter === 'all' || est?.status === statusFilter;
-            return matchesSearch && matchesStatus;
+
+            // Apply column filters
+            const matchesColumnFilters = Object.entries(columnFilters).every(([colKey, filterValue]) => {
+                if (!filterValue) return true;
+                const cellValue = getCellValue(item, colKey);
+                return String(cellValue).toLowerCase().includes(filterValue.toLowerCase());
+            });
+
+            return matchesSearch && matchesStatus && matchesColumnFilters;
         });
-    }, [items, estimations, searchQuery, statusFilter]);
+
+        // Apply sorting
+        if (sortColumn) {
+            result = [...result].sort((a, b) => {
+                const aVal = getCellValue(a, sortColumn);
+                const bVal = getCellValue(b, sortColumn);
+
+                if (typeof aVal === 'number' && typeof bVal === 'number') {
+                    return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+                }
+                const comparison = String(aVal).localeCompare(String(bVal));
+                return sortDirection === 'asc' ? comparison : -comparison;
+            });
+        }
+
+        return result;
+    }, [items, estimations, searchQuery, statusFilter, columnFilters, sortColumn, sortDirection]);
 
     // Count returned items
     const returnedCount = estimations.filter(est => est.status === 'returned').length;
@@ -150,26 +222,56 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
         toast.success(`${itemsWithData.length} items submitted for verification`);
     };
 
-    // Column definitions
+    // Column definitions (removed chargedOrVoted, added numeric type for summation)
     const columns = [
         { key: 'srNo', label: 'Sr. No', width: 'w-12', sticky: true },
         { key: 'budgetHead', label: 'Budget Head', width: 'w-64', sticky: true },
         { key: 'schemeNomenclature', label: 'Scheme Name', width: 'w-40' },
-        { key: 'chargedOrVoted', label: 'Charged/Voted', width: 'w-14' },
-        { key: 'bePrev', label: `BE (${FY.prev})`, width: 'w-28' },
-        { key: 'expPrev', label: `Exp. (${FY.prev})`, width: 'w-28' },
-        { key: 'beCurr', label: `BE (${FY.curr})`, width: 'w-28' },
-        { key: 'allotCurr', label: `Allot. (${FY.curr})`, width: 'w-28' },
-        { key: 'expCutoff', label: 'Exp. Cutoff', width: 'w-28' },
-        { key: 'proposedExp', label: 'Proposed Exp.*', width: 'w-32', editable: true },
-        { key: 'totalRE', label: 'Total RE', width: 'w-28' },
+        { key: 'bePrev', label: `BE (${FY.prev})`, width: 'w-28', numeric: true },
+        { key: 'expPrev', label: `Exp. (${FY.prev})`, width: 'w-28', numeric: true },
+        { key: 'beCurr', label: `BE (${FY.curr})`, width: 'w-28', numeric: true },
+        { key: 'allotCurr', label: `Allot. (${FY.curr})`, width: 'w-28', numeric: true },
+        { key: 'expCutoff', label: 'Exp. Cutoff', width: 'w-28', numeric: true },
+        { key: 'proposedExp', label: 'Proposed Exp.*', width: 'w-32', editable: true, numeric: true },
+        { key: 'totalRE', label: 'Total RE', width: 'w-28', numeric: true },
         { key: 'reOverBE', label: '% RE/BE', width: 'w-20' },
-        { key: 'be1', label: `BE1 (${FY.next})*`, width: 'w-32', editable: true },
+        { key: 'be1', label: `BE1 (${FY.next})*`, width: 'w-32', editable: true, numeric: true },
         { key: 'be1OverBE', label: '% BE1/BE', width: 'w-20' },
-        { key: 'be2', label: `BE2 (${FY.nextPlus1})`, width: 'w-32', editable: true },
-        { key: 'be3', label: `BE3 (${FY.nextPlus2})`, width: 'w-32', editable: true },
+        { key: 'be2', label: `BE2 (${FY.nextPlus1})`, width: 'w-32', editable: true, numeric: true },
+        { key: 'be3', label: `BE3 (${FY.nextPlus2})`, width: 'w-32', editable: true, numeric: true },
         { key: 'remarks', label: 'DDO Remarks', width: 'w-48', editable: true },
     ];
+
+    // Handle sorting
+    const handleSort = (columnKey: string) => {
+        if (sortColumn === columnKey) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortColumn(columnKey);
+            setSortDirection('asc');
+        }
+    };
+
+    // Handle column color change
+    const handleColorChange = (columnKey: string, color: string) => {
+        setColumnColors(prev => ({ ...prev, [columnKey]: color }));
+        setShowColorPicker(null);
+    };
+
+    // Handle column filter
+    const handleColumnFilter = (columnKey: string, value: string) => {
+        setColumnFilters(prev => ({ ...prev, [columnKey]: value }));
+    };
+
+    // Clear column filter
+    const clearColumnFilter = (columnKey: string) => {
+        setColumnFilters(prev => {
+            const newFilters = { ...prev };
+            delete newFilters[columnKey];
+            return newFilters;
+        });
+        setActiveFilterColumn(null);
+    };
 
     // Toggle column visibility
     const toggleColumn = (key: string) => {
@@ -411,24 +513,112 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
                 <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
                     <div className="overflow-auto max-h-[calc(100vh-200px)]">
                         <table className="w-full text-sm border-collapse">
-                            {/* Sticky Header */}
+                            {/* Sticky Header with Sort/Filter/Color */}
                             <thead className="bg-slate-100 sticky top-0 z-20">
                                 <tr>
                                     {displayColumns.map((col, idx) => {
                                         const isFirstSticky = col.key === 'srNo';
                                         const isSecondSticky = col.key === 'budgetHead';
+                                        const hasFilter = columnFilters[col.key];
+                                        const columnColor = columnColors[col.key] || '';
+
                                         return (
                                             <th
                                                 key={col.key}
                                                 className={cn(
-                                                    "px-2 py-3 text-left text-xs font-bold text-slate-700 uppercase tracking-wide border-b border-slate-200 whitespace-nowrap",
+                                                    "px-2 py-2 text-left text-xs font-bold text-slate-700 uppercase tracking-wide border-b border-slate-200",
                                                     col.width,
                                                     isFirstSticky && "sticky left-0 z-30 bg-slate-100",
                                                     isSecondSticky && "sticky left-12 z-30 bg-slate-100 border-r border-slate-300",
-                                                    col.editable && "text-blue-800 bg-blue-50"
+                                                    col.editable && "text-blue-800 bg-blue-50",
+                                                    columnColor && columnColor.replace('bg-', 'bg-').replace('-50', '-100')
                                                 )}
                                             >
-                                                {col.label}
+                                                <div className="flex flex-col gap-1">
+                                                    {/* Header Label with Sort & Actions */}
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="truncate">{col.label}</span>
+                                                        <div className="flex items-center gap-0.5 ml-auto">
+                                                            {/* Sort Button */}
+                                                            <button
+                                                                onClick={() => handleSort(col.key)}
+                                                                className={cn(
+                                                                    "p-0.5 rounded hover:bg-slate-200 transition-colors",
+                                                                    sortColumn === col.key && "text-blue-600"
+                                                                )}
+                                                                title="Sort column"
+                                                            >
+                                                                {sortColumn === col.key ? (
+                                                                    sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />
+                                                                ) : (
+                                                                    <ArrowUpDown size={12} className="text-slate-400" />
+                                                                )}
+                                                            </button>
+                                                            {/* Filter Button */}
+                                                            <button
+                                                                onClick={() => setActiveFilterColumn(activeFilterColumn === col.key ? null : col.key)}
+                                                                className={cn(
+                                                                    "p-0.5 rounded hover:bg-slate-200 transition-colors",
+                                                                    hasFilter && "text-blue-600"
+                                                                )}
+                                                                title="Filter column"
+                                                            >
+                                                                <Filter size={12} className={hasFilter ? "text-blue-600" : "text-slate-400"} />
+                                                            </button>
+                                                            {/* Color Button */}
+                                                            <button
+                                                                onClick={() => setShowColorPicker(showColorPicker === col.key ? null : col.key)}
+                                                                className={cn(
+                                                                    "p-0.5 rounded hover:bg-slate-200 transition-colors",
+                                                                    columnColor && "text-blue-600"
+                                                                )}
+                                                                title="Color column"
+                                                            >
+                                                                <Palette size={12} className={columnColor ? "text-blue-600" : "text-slate-400"} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Filter Input */}
+                                                    {activeFilterColumn === col.key && (
+                                                        <div className="flex items-center gap-1">
+                                                            <Input
+                                                                type="text"
+                                                                value={columnFilters[col.key] || ''}
+                                                                onChange={(e) => handleColumnFilter(col.key, e.target.value)}
+                                                                placeholder="Filter..."
+                                                                className="h-6 text-xs bg-white"
+                                                                autoFocus
+                                                            />
+                                                            {columnFilters[col.key] && (
+                                                                <button
+                                                                    onClick={() => clearColumnFilter(col.key)}
+                                                                    className="p-0.5 rounded hover:bg-red-100 text-red-500"
+                                                                >
+                                                                    <X size={12} />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Color Picker */}
+                                                    {showColorPicker === col.key && (
+                                                        <div className="flex flex-wrap gap-1 p-1 bg-white rounded shadow-lg border">
+                                                            {colorOptions.map(color => (
+                                                                <button
+                                                                    key={color.name}
+                                                                    onClick={() => handleColorChange(col.key, color.value)}
+                                                                    className={cn(
+                                                                        "w-5 h-5 rounded border-2 transition-all",
+                                                                        color.value || 'bg-white',
+                                                                        columnColor === color.value ? 'border-blue-500 ring-1 ring-blue-300' : 'border-slate-200 hover:border-slate-400'
+                                                                    )}
+                                                                    title={color.name}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </th>
                                         );
                                     })}
@@ -459,23 +649,21 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
                                             case 'budgetHead':
                                                 return <td key={colKey} className="px-2 py-2 sticky left-12 z-10 bg-inherit border-r border-slate-200"><code className="text-xs font-numeric font-semibold text-slate-900">{item.budgetHead}</code></td>;
                                             case 'schemeNomenclature':
-                                                return <td key={colKey} className="px-2 py-2 text-slate-700 font-medium truncate max-w-[160px]" title={item.schemeNomenclature || item.scheme}>{item.schemeNomenclature || item.scheme}</td>;
-                                            case 'chargedOrVoted':
-                                                return <td key={colKey} className="px-2 py-2 text-center"><span className={cn("text-xs font-bold px-1.5 py-0.5 rounded", item.chargedOrVoted === 'Charged' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-600')}>{item.chargedOrVoted === 'Charged' ? 'C' : 'V'}</span></td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-slate-700 font-medium truncate max-w-[160px]", columnColors[colKey])} title={item.schemeNomenclature || item.scheme}>{item.schemeNomenclature || item.scheme}</td>;
                                             case 'bePrev':
-                                                return <td key={colKey} className="px-2 py-2 text-right font-numeric text-slate-700">{formatCurrency(history?.fy1 || 0)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency(history?.fy1 || 0)}</td>;
                                             case 'expPrev':
-                                                return <td key={colKey} className="px-2 py-2 text-right font-numeric text-slate-700">{formatCurrency(history?.actualTillDate || 0)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency(history?.actualTillDate || 0)}</td>;
                                             case 'beCurr':
-                                                return <td key={colKey} className="px-2 py-2 text-right font-numeric text-slate-700">{formatCurrency(history?.currentYearBE || 0)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency(history?.currentYearBE || 0)}</td>;
                                             case 'allotCurr':
-                                                return <td key={colKey} className="px-2 py-2 text-right font-numeric text-slate-700">{formatCurrency(history?.currentYearBE || 0)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency(history?.currentYearBE || 0)}</td>;
                                             case 'expCutoff':
-                                                return <td key={colKey} className="px-2 py-2 text-right font-numeric text-slate-700">{formatCurrency(history?.actualTillDate || 0)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency(history?.actualTillDate || 0)}</td>;
                                             case 'proposedExp':
                                                 return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.reviseEstimateCY || ''} onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
                                             case 'totalRE':
-                                                return <td key={colKey} className="px-2 py-2 text-right font-numeric font-semibold text-slate-900">{formatCurrency(totalRE)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric font-semibold text-slate-900", columnColors[colKey])}>{formatCurrency(totalRE)}</td>;
                                             case 'reOverBE':
                                                 return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-xs", reOverBE && parseFloat(reOverBE) < 0 ? "text-red-600" : "text-slate-600")}>{reOverBE ? `${reOverBE}%` : '—'}</td>;
                                             case 'be1':
@@ -526,6 +714,51 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
                                     );
                                 })}
                             </tbody>
+
+                            {/* Summation Footer */}
+                            <tfoot className="bg-slate-100 sticky bottom-0 border-t-2 border-slate-300">
+                                <tr>
+                                    {displayColumns.map((col, idx) => {
+                                        const isFirstSticky = col.key === 'srNo';
+                                        const isSecondSticky = col.key === 'budgetHead';
+                                        const columnColor = columnColors[col.key] || '';
+
+                                        // Calculate sum for numeric columns
+                                        let sum = 0;
+                                        const isNumeric = columns.find(c => c.key === col.key)?.numeric;
+
+                                        if (isNumeric) {
+                                            filteredItems.forEach(item => {
+                                                const val = getCellValue(item, col.key);
+                                                if (typeof val === 'number') {
+                                                    sum += val;
+                                                }
+                                            });
+                                        }
+
+                                        return (
+                                            <td
+                                                key={col.key}
+                                                className={cn(
+                                                    "px-2 py-3 text-xs font-bold text-slate-800 bg-slate-100",
+                                                    isFirstSticky && "sticky left-0 z-40",
+                                                    isSecondSticky && "sticky left-12 z-40 border-r border-slate-300",
+                                                    isNumeric && "text-right font-numeric",
+                                                    columnColor && columnColor.replace('-50', '-100')
+                                                )}
+                                            >
+                                                {col.key === 'srNo' ? (
+                                                    <span className="text-slate-600">Σ</span>
+                                                ) : col.key === 'budgetHead' ? (
+                                                    <span className="text-slate-600">{filteredItems.length} items</span>
+                                                ) : isNumeric ? (
+                                                    <span className="text-slate-900">{formatCurrency(sum)}</span>
+                                                ) : null}
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            </tfoot>
                         </table>
 
                         {/* Empty State */}

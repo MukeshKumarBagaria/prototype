@@ -225,10 +225,7 @@ export default function LoginPage() {
                                     Signing in...
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-2">
-                                    <Lock size={14} />
-                                    Login to Finance Portal
-                                </div>
+                                'Login'
                             )}
                         </Button>
                     </form>
