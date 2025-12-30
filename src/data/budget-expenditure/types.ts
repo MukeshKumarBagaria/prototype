@@ -230,3 +230,97 @@ export interface AuditTrailEntry {
     }[];
     remarks?: string;
 }
+
+// ============================================
+// BCO Creator Types
+// ============================================
+
+// DDO Submission Status for BCO workflow
+export type DDOSubmissionStatus = 'not_submitted' | 'submitted' | 'accepted' | 'rejected' | 'system_generated';
+
+// DDO Submission - represents a DDO's budget submission to BCO
+export interface DDOSubmission {
+    id: string;
+    ddoCode: string;
+    ddoName: string;
+    budgetLineItemId: string;
+    schemeCode: string;
+    schemeName: string;
+
+    // Budget values
+    reviseEstimateCY: number;
+    budgetEstimateNextYear: number;
+    forwardEstimateY2: number;
+    forwardEstimateY3: number;
+
+    // Breakup information
+    hasBreakup: boolean;
+
+    // Submission status
+    submissionStatus: DDOSubmissionStatus;
+    submissionSource: 'ddo' | 'system';
+
+    // BCO acceptance
+    acceptedByBCO: boolean;
+    acceptedAt?: string;
+
+    // Frozen status (after BCO acceptance)
+    isFrozen: boolean;
+
+    // Timestamps
+    submittedAt?: string;
+    createdAt: string;
+    modifiedAt?: string;
+}
+
+// Scheme View - for scheme-wise display on BCO screen
+export interface SchemeView {
+    schemeCode: string;
+    schemeName: string;
+    budgetLines: BudgetLineItem[];
+    ddoSubmissions: DDOSubmission[];
+    totalDDOs: number;
+    submittedCount: number;
+    acceptedCount: number;
+    pendingCount: number;
+    consolidationStatus: 'draft' | 'in_progress' | 'submitted';
+    // Planning fields visibility
+    requiresOutcomeMapping: boolean;
+    requiresGeographyMapping: boolean;
+}
+
+// BCO Consolidation - consolidated data at BCO level
+export interface BCOConsolidation {
+    id: string;
+    schemeCode: string;
+    budgetLineItemId: string;
+
+    // Consolidated values (sum of accepted DDO submissions)
+    consolidatedRE: number;
+    consolidatedBE1: number;
+    consolidatedBE2: number;
+    consolidatedBE3: number;
+
+    // Outcome-based budgeting fields (entered at consolidated level)
+    scstPercentage?: number;
+    womenPercentage?: number;
+    youthPercentage?: number;
+    childPercentage?: number;
+    sdgMapping?: string[];
+    mdpiMapping?: string[];
+    geographyMapping?: { geography: string; percentage: number }[];
+    sectorMapping?: string[];
+
+    // Ceiling validation
+    ceilingLimit: number;
+    exceedsCeiling: boolean;
+    ceilingExceedJustification?: string;
+    ceilingExceedAttachment?: string;
+
+    // Status
+    status: 'draft' | 'submitted';
+    submittedAt?: string;
+    createdAt: string;
+    modifiedAt?: string;
+}
+

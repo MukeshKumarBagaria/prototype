@@ -479,3 +479,143 @@ export function getAuditTrailByBudgetLineId(budgetLineItemId: string): AuditTrai
     return MOCK_AUDIT_TRAIL.filter(entry => entry.budgetLineItemId === budgetLineItemId);
 }
 
+// ============================================
+// BCO Creator Mock Data
+// ============================================
+
+import { DDOSubmission, SchemeView } from './types';
+
+// List of DDOs under BCO
+const DDO_LIST = [
+    { code: 'DDO/2304/001', name: 'District Treasury Officer, Bhopal' },
+    { code: 'DDO/2304/002', name: 'Sub Treasury Officer, Hoshangabad' },
+    { code: 'DDO/2304/003', name: 'District Treasury Officer, Indore' },
+    { code: 'DDO/2304/004', name: 'Sub Treasury Officer, Dewas' },
+    { code: 'DDO/2304/005', name: 'District Treasury Officer, Jabalpur' },
+];
+
+// Generate DDO Submissions for BCO
+export const MOCK_DDO_SUBMISSIONS: DDOSubmission[] = [];
+
+// For each budget line, create submissions from multiple DDOs
+MOCK_BUDGET_LINE_ITEMS.slice(0, 20).forEach((budgetLine, lineIdx) => {
+    // Each budget line gets submissions from 3-5 DDOs
+    const numDDOs = 3 + (lineIdx % 3);
+
+    for (let ddoIdx = 0; ddoIdx < numDDOs; ddoIdx++) {
+        const ddo = DDO_LIST[ddoIdx % DDO_LIST.length];
+        const submissionId = `DDO_SUB_${budgetLine.id}_${ddo.code.replace(/\//g, '_')}`;
+
+        // Vary submission statuses
+        let submissionStatus: DDOSubmission['submissionStatus'] = 'submitted';
+        let acceptedByBCO = false;
+        let submissionSource: DDOSubmission['submissionSource'] = 'ddo';
+
+        if (ddoIdx === 0) {
+            // First DDO always submitted
+            submissionStatus = 'submitted';
+        } else if (ddoIdx === 1) {
+            // Second DDO accepted
+            submissionStatus = 'accepted';
+            acceptedByBCO = true;
+        } else if (ddoIdx === 2 && lineIdx % 4 === 0) {
+            // Some not submitted - use system generated
+            submissionStatus = 'system_generated';
+            submissionSource = 'system';
+        } else if (ddoIdx === 3) {
+            // Some pending
+            submissionStatus = 'submitted';
+        } else {
+            submissionStatus = 'submitted';
+        }
+
+        const baseAmount = budgetLine.budgetEstimate || 1000000;
+        const variation = 0.8 + (Math.random() * 0.4); // 80-120% of base
+
+        MOCK_DDO_SUBMISSIONS.push({
+            id: submissionId,
+            ddoCode: ddo.code,
+            ddoName: ddo.name,
+            budgetLineItemId: budgetLine.id,
+            schemeCode: budgetLine.scheme.match(/\((\d+)\)/)?.[1] || '2304',
+            schemeName: budgetLine.schemeNomenclature || budgetLine.scheme,
+            reviseEstimateCY: Math.round(baseAmount * variation * 0.9),
+            budgetEstimateNextYear: Math.round(baseAmount * variation),
+            forwardEstimateY2: Math.round(baseAmount * variation * 1.05),
+            forwardEstimateY3: Math.round(baseAmount * variation * 1.1),
+            hasBreakup: ['11', '22', '27'].includes(budgetLine.objectHead),
+            submissionStatus,
+            submissionSource,
+            acceptedByBCO,
+            acceptedAt: acceptedByBCO ? new Date().toISOString() : undefined,
+            isFrozen: acceptedByBCO,
+            submittedAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+            createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+    }
+});
+
+// Helper: Get DDO submissions for a budget line
+export function getDDOSubmissionsByBudgetLine(budgetLineItemId: string): DDOSubmission[] {
+    return MOCK_DDO_SUBMISSIONS.filter(sub => sub.budgetLineItemId === budgetLineItemId);
+}
+
+// Helper: Get all DDO submissions for BCO
+export function getAllDDOSubmissions(): DDOSubmission[] {
+    return MOCK_DDO_SUBMISSIONS;
+}
+
+// Helper: Get unique schemes from budget lines
+export function getSchemeViews(): SchemeView[] {
+    const schemeMap = new Map<string, SchemeView>();
+
+    MOCK_BUDGET_LINE_ITEMS.forEach(budgetLine => {
+        const schemeCode = budgetLine.scheme.match(/\((\d+)\)/)?.[1] || 'UNKNOWN';
+        const schemeName = budgetLine.scheme;
+
+        if (!schemeMap.has(schemeCode)) {
+            schemeMap.set(schemeCode, {
+                schemeCode,
+                schemeName,
+                budgetLines: [],
+                ddoSubmissions: [],
+                totalDDOs: DDO_LIST.length,
+                submittedCount: 0,
+                acceptedCount: 0,
+                pendingCount: 0,
+                consolidationStatus: 'draft',
+                requiresOutcomeMapping: schemeCode === '2304',
+                requiresGeographyMapping: schemeCode === '2304',
+            });
+        }
+
+        const schemeView = schemeMap.get(schemeCode)!;
+        schemeView.budgetLines.push(budgetLine);
+    });
+
+    // Add DDO submissions to each scheme
+    schemeMap.forEach((schemeView) => {
+        schemeView.budgetLines.forEach(bl => {
+            const submissions = getDDOSubmissionsByBudgetLine(bl.id);
+            schemeView.ddoSubmissions.push(...submissions);
+        });
+
+        schemeView.submittedCount = schemeView.ddoSubmissions.filter(s => s.submissionStatus === 'submitted').length;
+        schemeView.acceptedCount = schemeView.ddoSubmissions.filter(s => s.acceptedByBCO).length;
+        schemeView.pendingCount = schemeView.ddoSubmissions.filter(s =>
+            s.submissionStatus === 'system_generated' || !s.acceptedByBCO
+        ).length;
+
+        // Set consolidation status
+        if (schemeView.acceptedCount > 0) {
+            schemeView.consolidationStatus = 'in_progress';
+        }
+    });
+
+    return Array.from(schemeMap.values());
+}
+
+// Helper: Get DDO list
+export function getDDOList() {
+    return DDO_LIST;
+}
