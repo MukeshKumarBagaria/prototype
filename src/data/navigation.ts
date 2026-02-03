@@ -57,7 +57,15 @@ export const MODULE_NAVIGATION: Record<string, SidebarItem[]> = {
             label: 'Budget Head Configuration',
             icon: 'Settings',
             subItems: [
-                { id: 'demand-no', label: 'Demand No', icon: 'FileText', path: '/config/demand-no' },
+                {
+                    id: 'demand-no',
+                    label: 'Demand No',
+                    icon: 'FileText',
+                    subItems: [
+                        { id: 'create-demand-no', label: 'Create New Demand No', icon: 'FileText', path: '/config/demand-no/create' },
+                        { id: 'search-demand-no', label: 'Search/Update Demand No', icon: 'FileText', path: '/config/demand-no/search' },
+                    ]
+                },
                 { id: 'major-head', label: 'Major Head Master', icon: 'FileText', path: '/config/major-head' },
                 { id: 'sub-major-head', label: 'Sub Major Head Master', icon: 'FileText', path: '/config/sub-major-head' },
                 { id: 'minor-head', label: 'Minor Head Master', icon: 'FileText', path: '/config/minor-head' },
