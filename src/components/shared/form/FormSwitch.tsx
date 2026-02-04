@@ -41,7 +41,7 @@ export const FormSwitch: React.FC<FormSwitchProps> = ({
         >
             <Box>
                 <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary', fontSize: '14px' }}>
-                    {label} {required && <span style={{ color: theme.palette.warning.main }}>*</span>}
+                    {label} {required && <span style={{ color: theme.palette.error.main }}>*</span>}
                 </Typography>
                 {description && (
                     <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5, fontSize: '14px' }}>

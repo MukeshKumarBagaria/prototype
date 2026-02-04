@@ -44,7 +44,7 @@ export const FormRadioGroup: React.FC<FormRadioGroupProps> = ({
                     variant="body2"
                     sx={{ mb: 1, fontWeight: 500, color: 'text.primary', fontSize: '14px' }}
                 >
-                    {label} {required && <span style={{ color: theme.palette.warning.main }}>*</span>}
+                    {label} {required && <span style={{ color: theme.palette.error.main }}>*</span>}
                 </Typography>
                 <RadioGroup
                     row={row}
