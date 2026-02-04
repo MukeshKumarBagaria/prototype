@@ -8,18 +8,14 @@ import {
     Typography,
     Divider,
     Stack,
-
     OutlinedInput,
-    Button,
-
 } from '@mui/material';
-import CheckIcon from '@mui/icons-material/Check';
-import ReplayIcon from '@mui/icons-material/Replay';
 import {
     FormInput,
     FormSelect,
     FormRadioGroup,
     FormSwitch,
+    ActionButtons,
 } from '@/components/shared/form';
 
 type StatusType = 'Draft' | 'Pending' | 'Approved' | 'Rejected';
@@ -295,61 +291,20 @@ const VerifyDemandMaster: React.FC = () => {
                         <Divider sx={{ my: 4 }} />
 
                         {/* Action Buttons */}
-                        <Box sx={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            flexWrap: 'wrap',
-                            gap: 2
-                        }}>
-                            {/* Left side - Close */}
-                            <Button
-                                variant="outlined"
-                                color="error"
-                                onClick={handleClose}
-                                sx={{
-                                    textTransform: 'none',
-                                    fontWeight: 500,
-                                    px: 3
-                                }}
-                            >
-                                Close
-                            </Button>
-
-                            {/* Right side - Revert and Verify */}
-                            <Box sx={{ display: 'flex', gap: 2 }}>
-                                <Button
-                                    variant="contained"
-                                    color="warning"
-                                    onClick={handleRevert}
-                                    startIcon={<ReplayIcon />}
-                                    sx={{
-                                        textTransform: 'none',
-                                        fontWeight: 500,
-                                        px: 3,
-                                        bgcolor: '#ed6c02',
-                                        '&:hover': {
-                                            bgcolor: '#e65100'
-                                        }
-                                    }}
-                                >
-                                    Revert
-                                </Button>
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={handleVerify}
-                                    startIcon={<CheckIcon />}
-                                    sx={{
-                                        textTransform: 'none',
-                                        fontWeight: 500,
-                                        px: 3
-                                    }}
-                                >
-                                    Verify
-                                </Button>
-                            </Box>
-                        </Box>
+                        <ActionButtons
+                            showReset={false}
+                            showSaveDraft={false}
+                            showSubmit={true}
+                            showClose={true}
+                            showReturn={true}
+                            onClose={handleClose}
+                            onReturn={handleRevert}
+                            onSubmit={handleVerify}
+                            submitLabel="Verify"
+                            returnLabel="Revert"
+                            leftButtons={['close']}
+                            rightButtons={['return', 'submit']}
+                        />
                     </CardContent>
                 </Card>
             </Box>

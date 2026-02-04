@@ -9,7 +9,6 @@ import {
     Divider,
     Stack,
     OutlinedInput,
-    Button,
     Table,
     TableBody,
     TableCell,
@@ -18,13 +17,12 @@ import {
     TableRow,
     Paper
 } from '@mui/material';
-import CheckIcon from '@mui/icons-material/Check';
-import ReplayIcon from '@mui/icons-material/Replay';
 import {
     FormInput,
     FormSelect,
     FormRadioGroup,
     FormSwitch,
+    ActionButtons,
 } from '@/components/shared/form';
 
 type StatusType = 'Draft' | 'Pending' | 'Approved' | 'Rejected';
@@ -328,75 +326,20 @@ const ApproveDemandMaster: React.FC = () => {
                         <Divider sx={{ my: 4 }} />
 
                         {/* Action Buttons */}
-                        <Box sx={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            flexWrap: 'wrap',
-                            gap: 2
-                        }}>
-                            {/* Left side - Close */}
-                            <Button
-                                variant="outlined"
-                                color="error"
-                                onClick={handleClose}
-                                sx={{
-                                    textTransform: 'none',
-                                    fontWeight: 500,
-                                    px: 3
-                                }}
-                            >
-                                Close
-                            </Button>
-
-                            {/* Right side - Revert and Approve */}
-                            <Box sx={{ display: 'flex', gap: 2 }}>
-                                <Button
-                                    variant="contained"
-                                    onClick={handleRevert}
-                                    startIcon={<ReplayIcon />}
-                                    sx={{
-                                        bgcolor: 'primary.main',
-                                        borderRadius: '8px',
-                                        textTransform: 'none',
-                                        fontWeight: 500,
-                                        fontSize: '16px',
-                                        height: '48px',
-                                        px: 3,
-                                        color: 'white',
-                                        boxShadow: 'none',
-                                        '&:hover': {
-                                            bgcolor: 'primary.dark',
-                                            boxShadow: 'none'
-                                        }
-                                    }}
-                                >
-                                    Revert
-                                </Button>
-                                <Button
-                                    variant="contained"
-                                    onClick={handleApprove}
-                                    startIcon={<CheckIcon />}
-                                    sx={{
-                                        bgcolor: 'primary.main',
-                                        borderRadius: '8px',
-                                        textTransform: 'none',
-                                        fontWeight: 500,
-                                        fontSize: '16px',
-                                        height: '48px',
-                                        px: 3,
-                                        color: 'white',
-                                        boxShadow: 'none',
-                                        '&:hover': {
-                                            bgcolor: 'primary.dark',
-                                            boxShadow: 'none'
-                                        }
-                                    }}
-                                >
-                                    Approve
-                                </Button>
-                            </Box>
-                        </Box>
+                        <ActionButtons
+                            showReset={false}
+                            showSaveDraft={false}
+                            showSubmit={true}
+                            showClose={true}
+                            showReturn={true}
+                            onClose={handleClose}
+                            onReturn={handleRevert}
+                            onSubmit={handleApprove}
+                            submitLabel="Approve"
+                            returnLabel="Revert"
+                            leftButtons={['close']}
+                            rightButtons={['return', 'submit']}
+                        />
                     </CardContent>
                 </Card>
             </Box>
