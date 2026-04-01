@@ -10,8 +10,9 @@ import { Label } from '@/components/ui/label';
 import {
     ArrowLeft, ArrowUp, Save, Send, Search, Filter, Clock, CheckCircle2, AlertCircle,
     TrendingUp, TrendingDown, Layers, Check, ChevronDown, ChevronUp, Target,
-    FileText, AlertTriangle, Sparkles, Package, History, RotateCcw, ArrowRight, Upload
+    FileText, AlertTriangle, Sparkles, Package, History, RotateCcw, ArrowRight, Upload, FileSpreadsheet
 } from 'lucide-react';
+import { SchemeSelector, SchemeInfo } from './SchemeSelector';
 import { BudgetLineItem, EstimationRecord, TypedAsset, AuditTrailEntry } from '@/data/budget-expenditure/types';
 import { formatCurrency, MOCK_HISTORICAL_DATA, getAuditTrailByBudgetLineId, MOCK_AUDIT_TRAIL } from '@/data/budget-expenditure/mockData';
 import { requiresBreakup } from '@/data/budget-expenditure/breakupConfig';
@@ -30,6 +31,7 @@ const SDG_TARGETS = ['1.1', '1.2', '2.1', '3.1', '4.1', '5.1', '8.1'];
 const GENDER_TAGS = ['General', 'Women Specific', 'Gender Neutral'];
 const GEOGRAPHY_TAGS = ['Urban', 'Rural', 'Semi-Urban', 'Pan-India'];
 
+
 interface SmartBudgetGridProps {
     role: 'creator' | 'verifier' | 'approver';
     items: BudgetLineItem[];
@@ -38,6 +40,10 @@ interface SmartBudgetGridProps {
     onSubmit?: (data: any) => void;
     summaryCards?: React.ReactNode;
     viewToggle?: React.ReactNode;
+    schemes?: SchemeInfo[];
+    selectedScheme?: string | null;
+    filledSchemes?: Set<string>;
+    onSchemeSelect?: (schemeCode: string) => void;
 }
 
 interface ItemFormData {
@@ -55,7 +61,7 @@ interface ItemFormData {
     geographyTag: string;
 }
 
-export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartBudgetGridProps) {
+export function SmartBudgetGrid({ role, items, estimations, viewToggle, schemes, selectedScheme, filledSchemes, onSchemeSelect }: SmartBudgetGridProps) {
     const router = useRouter();
 
     // Dynamic Financial Year Calculation
@@ -378,6 +384,16 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
             {/* Fixed Header Section */}
             <header className="flex-shrink-0 bg-slate-50 px-4 pt-2">
                 <div className="max-w-[1400px] mx-auto">
+                    {/* === Scheme Selector === */}
+                    {schemes && schemes.length > 0 && (
+                        <SchemeSelector
+                            schemes={schemes}
+                            selectedScheme={selectedScheme ?? null}
+                            filledSchemes={filledSchemes ?? new Set()}
+                            onSchemeSelect={onSchemeSelect ?? (() => {})}
+                        />
+                    )}
+
                     {/* Summary Strip */}
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-4">
                         <div className="flex items-center justify-between">
@@ -525,6 +541,22 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                 className="flex-1 overflow-y-auto px-4 pb-6 relative"
             >
                 <div className="max-w-[1400px] mx-auto">
+                    {/* Show prompt to select scheme if none selected */}
+                    {schemes && schemes.length > 0 && !selectedScheme ? (
+                        <div className="flex items-center justify-center py-24">
+                            <div className="text-center px-8">
+                                <div className="h-20 w-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                                    <FileSpreadsheet className="text-blue-600" size={36} />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-800 mb-2">Select a Scheme to Begin</h3>
+                                <p className="text-sm text-slate-500 max-w-md">
+                                    You have <span className="font-semibold text-blue-700">{schemes.length} schemes</span> assigned.
+                                    Please select a scheme from the panel above to view and fill its budget lines.
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                    <>
                     {/* Budget Line Cards */}
                     <div className="space-y-4">
                         {activeBreakupLine && (
@@ -1245,6 +1277,8 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle }: SmartB
                             <p className="text-lg font-medium text-slate-600">No budget lines found</p>
                             <p className="text-sm">Try adjusting your search or filters</p>
                         </div>
+                    )}
+                    </>
                     )}
                 </div>
 

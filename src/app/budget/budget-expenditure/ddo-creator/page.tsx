@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { SmartBudgetGrid } from '@/components/budget-expenditure/grid/SmartBudgetGrid';
 import { TableBudgetGrid } from '@/components/budget-expenditure/grid/TableBudgetGrid';
-import { MOCK_BUDGET_LINE_ITEMS, MOCK_ESTIMATIONS } from '@/data/budget-expenditure/mockData';
+import { MOCK_BUDGET_LINE_ITEMS, MOCK_ESTIMATIONS, getUniqueSchemesFromBudgetLines } from '@/data/budget-expenditure/mockData';
 import { toast } from 'sonner';
 import { LayoutGrid, Table2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,21 @@ import { cn } from '@/lib/utils';
 
 export default function DDOCreatorPage() {
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
-    const budgetLines = MOCK_BUDGET_LINE_ITEMS;
+    const [selectedScheme, setSelectedScheme] = useState<string | null>(null);
+    const [filledSchemes, setFilledSchemes] = useState<Set<string>>(new Set());
+
+    const allBudgetLines = MOCK_BUDGET_LINE_ITEMS;
+    const schemes = useMemo(() => getUniqueSchemesFromBudgetLines(), []);
+
+    // Filter budget lines by selected scheme
+    const budgetLines = useMemo(() => {
+        if (!selectedScheme) return [];
+        return allBudgetLines.filter(item => {
+            const match = item.scheme.match(/\((\d+)\)/);
+            const code = match ? match[1] : 'UNKNOWN';
+            return code === selectedScheme;
+        });
+    }, [allBudgetLines, selectedScheme]);
 
     const estimations = budgetLines.map(line => {
         const existing = MOCK_ESTIMATIONS.find(e => e.budgetLineItemId === line.id);
@@ -32,6 +46,14 @@ export default function DDOCreatorPage() {
         };
     });
 
+    const handleSchemeSelect = (schemeCode: string) => {
+        // Mark previous scheme as filled if switching
+        if (selectedScheme && selectedScheme !== schemeCode) {
+            setFilledSchemes(prev => new Set(prev).add(selectedScheme));
+        }
+        setSelectedScheme(schemeCode);
+    };
+
     const handleSave = () => {
         toast.success("Draft saved successfully", {
             description: "Your changes have been saved locally."
@@ -39,6 +61,9 @@ export default function DDOCreatorPage() {
     };
 
     const handleSubmit = () => {
+        if (selectedScheme) {
+            setFilledSchemes(prev => new Set(prev).add(selectedScheme));
+        }
         toast.success("Submitted to Verifier", {
             description: "Budget estimations have been forwarded to the DDO Verifier."
         });
@@ -88,6 +113,10 @@ export default function DDOCreatorPage() {
                     onSave={handleSave}
                     onSubmit={handleSubmit}
                     viewToggle={ViewToggle}
+                    schemes={schemes}
+                    selectedScheme={selectedScheme}
+                    filledSchemes={filledSchemes}
+                    onSchemeSelect={handleSchemeSelect}
                 />
             ) : (
                 <TableBudgetGrid
@@ -95,6 +124,10 @@ export default function DDOCreatorPage() {
                     items={budgetLines}
                     estimations={estimations}
                     viewToggle={ViewToggle}
+                    schemes={schemes}
+                    selectedScheme={selectedScheme}
+                    filledSchemes={filledSchemes}
+                    onSchemeSelect={handleSchemeSelect}
                 />
             )}
         </>

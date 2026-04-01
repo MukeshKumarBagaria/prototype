@@ -5,10 +5,11 @@ import { BudgetLineItem, HistoricalData, EstimationRecord } from '@/data/budget-
 import { formatCurrency, MOCK_HISTORICAL_DATA } from '@/data/budget-expenditure/mockData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, ArrowLeft, Save, Check, Columns, Eye, EyeOff, Upload, Download, RotateCcw, ArrowRight, CheckCircle2, Clock, Layers, Palette, X } from 'lucide-react';
+import { Search, Filter, ArrowLeft, Save, Check, Columns, Eye, EyeOff, Upload, Download, RotateCcw, ArrowRight, CheckCircle2, Clock, Layers, Palette, X, FileSpreadsheet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { SchemeSelector, SchemeInfo } from './SchemeSelector';
 import { requiresBreakup } from '@/data/budget-expenditure/breakupConfig';
 import { BreakupModal, BreakupItem } from './BreakupModal';
 import {
@@ -50,14 +51,20 @@ interface ItemFormData {
     remarks: string;
 }
 
+
+
 interface TableBudgetGridProps {
     role: 'creator' | 'verifier' | 'approver';
     items: BudgetLineItem[];
     estimations: EstimationRecord[];
     viewToggle?: React.ReactNode;
+    schemes?: SchemeInfo[];
+    selectedScheme?: string | null;
+    filledSchemes?: Set<string>;
+    onSchemeSelect?: (schemeCode: string) => void;
 }
 
-export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableBudgetGridProps) {
+export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes, selectedScheme, filledSchemes, onSchemeSelect }: TableBudgetGridProps) {
     const router = useRouter();
     const [formData, setFormData] = useState<Record<string, ItemFormData>>({});
     const [searchQuery, setSearchQuery] = useState('');
@@ -336,6 +343,16 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
             {/* Fixed Header Section */}
             <header className="flex-shrink-0 bg-slate-50 px-4 pt-2">
                 <div className="max-w-full mx-auto">
+                    {/* === Scheme Selector === */}
+                    {schemes && schemes.length > 0 && (
+                        <SchemeSelector
+                            schemes={schemes}
+                            selectedScheme={selectedScheme ?? null}
+                            filledSchemes={filledSchemes ?? new Set()}
+                            onSchemeSelect={onSchemeSelect ?? (() => {})}
+                        />
+                    )}
+
                     {/* Summary Strip */}
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-3 mb-3">
                         <div className="flex items-center justify-between">
@@ -514,6 +531,21 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
 
             {/* Scrollable Table Container */}
             <main className="flex-1 flex flex-col overflow-hidden px-4 pb-4">
+                {/* Show prompt to select scheme if none selected */}
+                {schemes && schemes.length > 0 && !selectedScheme ? (
+                    <div className="flex-1 flex items-center justify-center bg-white rounded-lg border border-slate-200 shadow-sm">
+                        <div className="text-center py-16 px-8">
+                            <div className="h-20 w-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                                <FileSpreadsheet className="text-blue-600" size={36} />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-800 mb-2">Select a Scheme to Begin</h3>
+                            <p className="text-sm text-slate-500 max-w-md">
+                                You have <span className="font-semibold text-blue-700">{schemes.length} schemes</span> assigned.
+                                Please select a scheme from the panel above to view and fill its budget lines.
+                            </p>
+                        </div>
+                    </div>
+                ) : (
                 <div className="bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col overflow-hidden flex-1">
                     {/* Single scrollable container for entire table including footer */}
                     <div ref={tableContainerRef} className="flex-1 overflow-auto">
@@ -787,6 +819,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle }: TableB
                         )}
                     </div>
                 </div>
+                )}
             </main>
 
             {/* Footer for Creator role */}
