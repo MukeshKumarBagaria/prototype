@@ -382,8 +382,8 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle, schemes,
     return (
         <div className="h-screen flex flex-col bg-slate-50">
             {/* Fixed Header Section */}
-            <header className="flex-shrink-0 bg-slate-50 px-4 pt-2">
-                <div className="max-w-[1400px] mx-auto">
+            <header className="flex-shrink-0 bg-slate-50 px-[40px] pt-4">
+                <div className="w-full">
                     {/* === Scheme Selector === */}
                     {schemes && schemes.length > 0 && (
                         <SchemeSelector
@@ -538,9 +538,9 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle, schemes,
             <main
                 ref={mainRef}
                 onScroll={handleScroll}
-                className="flex-1 overflow-y-auto px-4 pb-6 relative"
+                className="flex-1 overflow-y-auto px-[40px] pb-6 relative"
             >
-                <div className="max-w-[1400px] mx-auto">
+                <div className="w-full">
                     {/* Show prompt to select scheme if none selected */}
                     {schemes && schemes.length > 0 && !selectedScheme ? (
                         <div className="flex items-center justify-center py-24">
@@ -548,10 +548,21 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                 <div className="h-20 w-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
                                     <FileSpreadsheet className="text-blue-600" size={36} />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-800 mb-2">Select a Scheme to Begin</h3>
+                                <h3 className="text-xl font-bold text-slate-800 mb-2">Select a Budget Line to Begin</h3>
                                 <p className="text-sm text-slate-500 max-w-md">
-                                    You have <span className="font-semibold text-blue-700">{schemes.length} schemes</span> assigned.
-                                    Please select a scheme from the panel above to view and fill its budget lines.
+                                    You have 
+                                    <button 
+                                        className="font-semibold text-blue-700 hover:text-blue-800 hover:underline mx-1 transition-all"
+                                        onClick={() => {
+                                            // The trigger opens the state of the component
+                                            const triggerEl = document.querySelector('[data-scheme-selector-trigger]') as HTMLButtonElement;
+                                            if (triggerEl) triggerEl.click();
+                                        }}
+                                    >
+                                        {schemes.length} schemes
+                                    </button> 
+                                    assigned.
+                                    Please select a budget line from the panel above to view and fill its details.
                                 </p>
                             </div>
                         </div>
@@ -1296,8 +1307,8 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle, schemes,
 
             {/* Fixed Footer with Batch Submit */}
             {role === 'creator' && (
-                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-4 mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
-                    <div className="max-w-[1400px] mx-auto flex items-center justify-between">
+                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-[40px] mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
+                    <div className="w-full flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="text-sm text-slate-600">
                                 <span className="font-semibold text-slate-900">{getFilledCount()}</span>
@@ -1327,8 +1338,8 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle, schemes,
 
             {/* Footer for Verifier role */}
             {role === 'verifier' && (
-                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-4 mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
-                    <div className="max-w-[1400px] mx-auto flex items-center justify-between">
+                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-[40px] mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
+                    <div className="w-full flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="text-sm text-slate-600">
                                 <span className="font-semibold text-slate-900">{getFilledCount()}</span>
@@ -1367,8 +1378,8 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle, schemes,
 
             {/* Footer for Approver role */}
             {role === 'approver' && (
-                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-4 mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
-                    <div className="max-w-[1400px] mx-auto flex items-center justify-between">
+                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-[40px] mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
+                    <div className="w-full flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="text-sm text-slate-600">
                                 <span className="font-semibold text-slate-900">{getFilledCount()}</span>

@@ -43,6 +43,27 @@ const FY = {
     nextPlus2: `${currentFYStart + 3}-${String(currentFYStart + 4).slice(2)}`,
 };
 
+// Nomenclature lookup maps
+const DETAIL_HEAD_NOMENCLATURE: Record<string, string> = {
+    '000': 'Wages', '001': 'Basic Pay', '002': 'Telephone',
+    '003': 'Dearness Allowance', '004': 'Transport Allowance',
+    '005': 'Electricity', '006': 'HRA', '007': 'CCA',
+    '008': 'Other Allowances', '009': 'Medical / POL',
+    '010': 'LTC', '011': 'Festival Advance',
+    '016': 'Grain Advance', '018': 'Medical Advance',
+    '021': 'Special Pay', '025': 'Contractual Payment',
+    '030': 'Stationery'
+};
+
+const OBJECT_HEAD_NOMENCLATURE: Record<string, string> = {
+    '11': 'Salaries (Establishment)', '12': 'Wages', '13': 'TA/DA', '14': 'Office Expenses',
+    '16': 'Publications/Printing', '19': 'Professional Services', '20': 'Other Charges',
+    '21': 'Grants-in-Aid (General)', '22': 'Office Consumables', '23': 'Machinery & Equipment',
+    '24': 'Contributions', '26': 'Minor Works', '27': 'IT & Computer', '28': 'Investment',
+    '30': 'Outsourced Services', '31': 'Contractual Services', '33': 'Subsidies',
+    '36': 'Grants to Local Bodies', '50': 'Other Capital', '51': 'Motor Vehicles'
+};
+
 interface ItemFormData {
     reviseEstimateCY: number;
     budgetEstimateNextYear: number;
@@ -82,7 +103,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
 
     // Column visibility state - all visible by default (removed chargedOrVoted)
     const [visibleColumns, setVisibleColumns] = useState<Set<string>>(new Set([
-        'srNo', 'budgetHead', 'schemeNomenclature',
+        'srNo', 'budgetHead', 'detailCodeNomenclature', 'schemeNomenclature',
         'bePrev', 'expPrev', 'beCurr', 'allotCurr', 'expCutoff',
         'proposedExp', 'totalRE', 'reOverBE', 'be1', 'be1OverBE',
         'be2', 'be3', 'remarks'
@@ -159,6 +180,8 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
             case 'chargedOrVoted': return item.chargedOrVoted || '';
             case 'objectHead': return item.objectHead || '';
             case 'detailHead': return item.detailHead || '';
+            case 'detailCodeNomenclature': return DETAIL_HEAD_NOMENCLATURE[item.detailHead] || item.schemeNomenclature || item.detailHead || '';
+            case 'objectCodeNomenclature': return OBJECT_HEAD_NOMENCLATURE[item.objectHead] || item.objectHead || '';
             case 'schemeNomenclature': return item.schemeNomenclature || item.scheme || '';
             case 'bePrev': return history?.fy1 || 0;
             case 'expPrev': return history?.actualTillDate || 0;
@@ -176,7 +199,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
     };
 
     const filteredItems = useMemo(() => {
-        let result = items.filter(item => {
+        const result = items.filter(item => {
             const est = estimations.find(e => e.budgetLineItemId === item.id);
             const query = searchQuery.toLowerCase().trim();
 
@@ -235,8 +258,9 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
 
     // Column definitions (added budget head breakdown columns, hidden by default)
     const columns = [
-        { key: 'srNo', label: 'Sr. No', width: 'w-12', sticky: true },
-        { key: 'budgetHead', label: 'Budget Head', width: 'w-64', sticky: true },
+        { key: 'srNo', label: 'Sr. No', width: 'w-12 min-w-[3rem] max-w-[3rem]', sticky: true },
+        { key: 'budgetHead', label: 'Budget Head', width: 'w-64 min-w-[16rem] max-w-[16rem]', sticky: true },
+        { key: 'detailCodeNomenclature', label: 'Detail Code Nomenclature', width: 'w-44 min-w-[11rem] max-w-[11rem]', sticky: true },
         // Budget head breakdown columns (hidden by default)
         { key: 'demandNo', label: 'Demand No.', width: 'w-16' },
         { key: 'majorHead', label: 'Major Head', width: 'w-16' },
@@ -247,6 +271,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
         { key: 'chargedOrVoted', label: 'C/V', width: 'w-14' },
         { key: 'objectHead', label: 'Object', width: 'w-16' },
         { key: 'detailHead', label: 'Detail', width: 'w-16' },
+        { key: 'objectCodeNomenclature', label: 'Object Code Nomenclature', width: 'w-44' },
         { key: 'schemeNomenclature', label: 'Scheme Name', width: 'w-40' },
         { key: 'bePrev', label: `BE (${FY.prev})`, width: 'w-28', numeric: true },
         { key: 'expPrev', label: `Exp. (${FY.prev})`, width: 'w-28', numeric: true },
@@ -341,8 +366,8 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
             )}
 
             {/* Fixed Header Section */}
-            <header className="flex-shrink-0 bg-slate-50 px-4 pt-2">
-                <div className="max-w-full mx-auto">
+            <header className="flex-shrink-0 bg-slate-50 px-[40px] pt-4">
+                <div className="w-full">
                     {/* === Scheme Selector === */}
                     {schemes && schemes.length > 0 && (
                         <SchemeSelector
@@ -530,7 +555,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
             </header>
 
             {/* Scrollable Table Container */}
-            <main className="flex-1 flex flex-col overflow-hidden px-4 pb-4">
+            <main className="flex-1 flex flex-col overflow-hidden px-[40px] pb-4">
                 {/* Show prompt to select scheme if none selected */}
                 {schemes && schemes.length > 0 && !selectedScheme ? (
                     <div className="flex-1 flex items-center justify-center bg-white rounded-lg border border-slate-200 shadow-sm">
@@ -538,10 +563,20 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                             <div className="h-20 w-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
                                 <FileSpreadsheet className="text-blue-600" size={36} />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-800 mb-2">Select a Scheme to Begin</h3>
-                            <p className="text-sm text-slate-500 max-w-md">
-                                You have <span className="font-semibold text-blue-700">{schemes.length} schemes</span> assigned.
-                                Please select a scheme from the panel above to view and fill its budget lines.
+                            <h3 className="text-xl font-bold text-slate-800 mb-2">Select a Budget Line to Begin</h3>
+                            <p className="text-sm text-slate-500 max-w-md mx-auto">
+                                You have 
+                                <button 
+                                    className="font-semibold text-blue-700 hover:text-blue-800 hover:underline mx-1 transition-all"
+                                    onClick={() => {
+                                        const triggerEl = document.querySelector('[data-scheme-selector-trigger]') as HTMLButtonElement;
+                                        if (triggerEl) triggerEl.click();
+                                    }}
+                                >
+                                    {schemes.length} schemes
+                                </button> 
+                                assigned.
+                                Please select a budget line from the panel above to view and fill its details.
                             </p>
                         </div>
                     </div>
@@ -549,13 +584,14 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                 <div className="bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col overflow-hidden flex-1">
                     {/* Single scrollable container for entire table including footer */}
                     <div ref={tableContainerRef} className="flex-1 overflow-auto">
-                        <table className="w-full text-sm border-collapse">
+                        <table className="w-full text-sm border-collapse [&_th]:border-r-2 [&_th]:border-[#BFBFBF] [&_td]:border-r-2 [&_td]:border-[#BFBFBF] border-x-2 border-[#BFBFBF]">
                             {/* Sticky Header */}
-                            <thead className="bg-slate-100 sticky top-0 z-20">
+                            <thead className="bg-[#f8fafc] sticky top-0 z-20">
                                 <tr>
                                     {displayColumns.map((col, idx) => {
                                         const isFirstSticky = col.key === 'srNo';
                                         const isSecondSticky = col.key === 'budgetHead';
+                                        const isThirdSticky = col.key === 'detailCodeNomenclature';
                                         const hasFilter = columnFilters[col.key];
                                         const columnColor = columnColors[col.key] || '';
 
@@ -566,16 +602,17 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                                     "px-2 py-2 text-left text-xs font-bold text-slate-700 uppercase tracking-wide border-b border-slate-200",
                                                     col.width,
                                                     isFirstSticky && "sticky left-0 z-30 bg-slate-100",
-                                                    isSecondSticky && "sticky left-12 z-30 bg-slate-100 border-r border-slate-300",
+                                                    isSecondSticky && "sticky left-12 z-30 bg-slate-100",
+                                                    isThirdSticky && "sticky left-[19rem] z-30 bg-slate-100",
                                                     col.editable && "text-blue-800 bg-blue-50",
                                                     columnColor && columnColor.replace('bg-', 'bg-').replace('-50', '-100')
                                                 )}
                                             >
-                                                <div className="flex flex-col gap-1">
+                                                <div className="flex flex-col gap-1 w-full pt-1">
                                                     {/* Header Label with Filter & Color Actions */}
-                                                    <div className="flex items-center gap-1">
-                                                        <span className="truncate">{col.label}</span>
-                                                        <div className="flex items-center gap-0.5 ml-auto">
+                                                    <div className="flex items-start gap-1 w-full">
+                                                        <span className="whitespace-normal break-words w-full leading-tight" title={col.label}>{col.label}</span>
+                                                        <div className="flex items-center gap-0.5 ml-auto flex-shrink-0">
                                                             {/* Filter Button */}
                                                             <button
                                                                 onClick={() => setActiveFilterColumn(activeFilterColumn === col.key ? null : col.key)}
@@ -663,6 +700,8 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                         ? ((data.budgetEstimateNextYear - history.currentYearBE) / history.currentYearBE * 100).toFixed(1)
                                         : null;
 
+                                    const est = estimations.find(e => e.budgetLineItemId === item.id);
+
                                     // Determine solid background color for sticky cells
                                     const getStickyBgColor = () => {
                                         if (isSubmitted) return 'bg-green-50';
@@ -675,9 +714,13 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                     const renderCell = (colKey: string) => {
                                         switch (colKey) {
                                             case 'srNo':
-                                                return <td key={colKey} className={cn("px-2 py-2 sticky left-0 z-10 font-bold text-blue-600 text-center", stickyBg)}>{item.srNo}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 w-12 min-w-[3rem] max-w-[3rem] sticky left-0 z-10 font-bold text-blue-600 text-center", stickyBg)}>{item.srNo}</td>;
                                             case 'budgetHead':
-                                                return <td key={colKey} className={cn("px-2 py-2 sticky left-12 z-10 border-r border-slate-200", stickyBg)}><code className="text-xs font-numeric font-semibold text-slate-900">{item.budgetHead}</code></td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 w-64 min-w-[16rem] max-w-[16rem] sticky left-12 z-10", stickyBg)}><code className="text-xs font-numeric font-semibold text-slate-900">{item.budgetHead}</code></td>;
+                                            case 'detailCodeNomenclature':
+                                                return <td key={colKey} className={cn("px-2 py-2 w-44 min-w-[11rem] max-w-[11rem] sticky left-[19rem] z-10 text-xs font-medium text-slate-700", stickyBg)}><div className="whitespace-normal break-words" title={DETAIL_HEAD_NOMENCLATURE[item.detailHead] || item.schemeNomenclature || item.detailHead}>{DETAIL_HEAD_NOMENCLATURE[item.detailHead] || item.schemeNomenclature || item.detailHead}</div></td>;
+                                            case 'objectCodeNomenclature':
+                                                return <td key={colKey} className={cn("px-2 py-2 text-xs font-medium text-slate-700", columnColors[colKey])}>{OBJECT_HEAD_NOMENCLATURE[item.objectHead] || item.objectHead}</td>;
                                             // Budget head component columns
                                             case 'demandNo':
                                                 return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-xs font-medium text-slate-700", columnColors[colKey])}>{item.demandNo}</td>;
@@ -698,7 +741,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                             case 'detailHead':
                                                 return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-xs font-medium text-slate-700", columnColors[colKey])}>{item.detailHead}</td>;
                                             case 'schemeNomenclature':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-slate-700 font-medium truncate max-w-[160px]", columnColors[colKey])} title={item.schemeNomenclature || item.scheme}>{item.schemeNomenclature || item.scheme}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-slate-700 font-medium max-w-[160px]", columnColors[colKey])} title={item.schemeNomenclature || item.scheme}><div className="whitespace-normal break-words">{item.schemeNomenclature || item.scheme}</div></td>;
                                             case 'bePrev':
                                                 return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency(history?.fy1 || 0)}</td>;
                                             case 'expPrev':
@@ -710,7 +753,12 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                             case 'expCutoff':
                                                 return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency(history?.actualTillDate || 0)}</td>;
                                             case 'proposedExp':
-                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.reviseEstimateCY || ''} onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
+                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50 relative">
+                                                    <Input type="number" value={data.reviseEstimateCY || ''} onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" />
+                                                    {/* role === 'creator' && est?.bcoTotalRE && est.bcoTotalRE !== data.reviseEstimateCY && (
+                                                        <div className="absolute top-0 right-0 w-2 h-2 bg-amber-500 rounded-full" title="Edited by BCO" />
+                                                    ) */}
+                                                </td>;
                                             case 'totalRE':
                                                 return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric font-semibold text-slate-900", columnColors[colKey])}>{formatCurrency(totalRE)}</td>;
                                             case 'reOverBE':
@@ -824,7 +872,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
 
             {/* Footer for Creator role */}
             {role === 'creator' && (
-                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-4 mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
+                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-[40px] mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
                     <div className="max-w-full mx-auto flex items-center justify-between">
                         <div className="text-sm text-slate-600">
                             <span className="font-semibold text-slate-900">{submittedItems.size}</span>
@@ -846,7 +894,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
 
             {/* Footer for Verifier role */}
             {role === 'verifier' && (
-                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-4 mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
+                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-[40px] mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
                     <div className="max-w-full mx-auto flex items-center justify-between">
                         <div className="text-sm text-slate-600">
                             <span className="font-semibold text-slate-900">{submittedItems.size}</span>
@@ -879,7 +927,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
 
             {/* Footer for Approver role */}
             {role === 'approver' && (
-                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-4 mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
+                <footer className="flex-shrink-0 bg-white border border-slate-200 mx-[40px] mb-4 px-4 py-3 shadow-lg rounded-xl z-40">
                     <div className="max-w-full mx-auto flex items-center justify-between">
                         <div className="text-sm text-slate-600">
                             <span className="font-semibold text-slate-900">{submittedItems.size}</span>

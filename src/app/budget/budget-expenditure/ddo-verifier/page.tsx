@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export default function DDOVerifierPage() {
-    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
 
     // Show all budget lines (entire batch is submitted together)
     const budgetLines = MOCK_BUDGET_LINE_ITEMS;

@@ -24,6 +24,11 @@ interface SchemeSelectorProps {
     onSchemeSelect: (schemeCode: string) => void;
 }
 
+// Strip the "(XXXX) " code prefix from scheme name since code is shown separately
+function stripCodePrefix(name: string): string {
+    return name.replace(/^\(\d+\)\s*/, '');
+}
+
 export function SchemeSelector({ schemes, selectedScheme, filledSchemes, onSchemeSelect }: SchemeSelectorProps) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -76,26 +81,25 @@ export function SchemeSelector({ schemes, selectedScheme, filledSchemes, onSchem
         <div className="relative bg-white rounded-xl shadow-sm border border-slate-200 mb-3 overflow-visible" ref={dropdownRef}>
             {/* Compact Bar */}
             <div className="flex items-center gap-3 px-4 py-2.5">
-                {/* Icon */}
-                <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm flex-shrink-0">
-                    <FileSpreadsheet className="text-white" size={17} />
+                <div className="flex-shrink-0 px-3 py-1.5 rounded-lg font-semibold text-white text-xs whitespace-nowrap" style={{ background: 'linear-gradient(135deg, #1B6498, #1B557E)' }}>
+                    Select Budget Line
                 </div>
 
-                {/* Scheme Selector Trigger */}
                 <div className="flex-1 min-w-0">
                     <button
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        data-scheme-selector-trigger="true"
                         className={cn(
                             "w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border transition-all duration-200 text-left",
                             isDropdownOpen
-                                ? "border-blue-400 ring-2 ring-blue-100 bg-white"
+                                ? "border-[#1D81C9] ring-2 ring-[#A3D3F5]/40 bg-white"
                                 : "border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-white"
                         )}
                     >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
                             {currentScheme ? (
                                 <>
-                                    <div className="h-6 w-6 rounded bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+                                    <div className="h-6 w-6 rounded text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#1B557E' }}>
                                         {currentScheme.code.slice(-2)}
                                     </div>
                                     <div className="min-w-0 flex-1">
@@ -108,7 +112,7 @@ export function SchemeSelector({ schemes, selectedScheme, filledSchemes, onSchem
                                     </span>
                                 </>
                             ) : (
-                                <span className="text-sm text-slate-400">Select a scheme to begin...</span>
+                                <span className="text-sm text-slate-400">Select a budget line to begin...</span>
                             )}
                         </div>
                         <ChevronDown
@@ -193,9 +197,10 @@ export function SchemeSelector({ schemes, selectedScheme, filledSchemes, onSchem
                                         className={cn(
                                             "px-2.5 py-1.5 text-xs font-medium rounded-md transition-all duration-150",
                                             statusFilter === tab.key
-                                                ? "bg-blue-600 text-white shadow-sm"
+                                                ? "text-white shadow-sm"
                                                 : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
                                         )}
+                                        style={statusFilter === tab.key ? { backgroundColor: '#1B6498' } : undefined}
                                     >
                                         {tab.label} <span className="opacity-70">({tab.count})</span>
                                     </button>
@@ -214,7 +219,7 @@ export function SchemeSelector({ schemes, selectedScheme, filledSchemes, onSchem
                             </div>
                         ) : (
                             <div className="py-1">
-                                {filteredSchemes.map((scheme, idx) => {
+                                {filteredSchemes.map((scheme) => {
                                     const isFilled = filledSchemes.has(scheme.code);
                                     const isSelected = selectedScheme === scheme.code;
                                     return (
@@ -222,11 +227,12 @@ export function SchemeSelector({ schemes, selectedScheme, filledSchemes, onSchem
                                             key={scheme.code}
                                             onClick={() => handleSelect(scheme.code)}
                                             className={cn(
-                                                "w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-100 border-l-3",
+                                                "w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-100 border-l-[3px]",
                                                 isSelected
-                                                    ? "bg-blue-50 border-l-blue-600"
+                                                    ? "border-l-[#1B6498]"
                                                     : "hover:bg-slate-50 border-l-transparent",
                                             )}
+                                            style={isSelected ? { backgroundColor: '#F6FAFD' } : undefined}
                                         >
                                             {/* Status icon */}
                                             <div className={cn(
@@ -234,9 +240,11 @@ export function SchemeSelector({ schemes, selectedScheme, filledSchemes, onSchem
                                                 isFilled
                                                     ? "bg-emerald-100 text-emerald-600"
                                                     : isSelected
-                                                        ? "bg-blue-100 text-blue-600"
+                                                        ? "text-[#1B6498]"
                                                         : "bg-slate-100 text-slate-400"
-                                            )}>
+                                            )}
+                                            style={isSelected && !isFilled ? { backgroundColor: '#E5F4FF' } : undefined}
+                                            >
                                                 {isFilled ? <CheckCircle2 size={15} /> : <Circle size={15} />}
                                             </div>
 
@@ -244,18 +252,22 @@ export function SchemeSelector({ schemes, selectedScheme, filledSchemes, onSchem
                                             <span className={cn(
                                                 "text-xs font-mono font-bold px-1.5 py-0.5 rounded flex-shrink-0",
                                                 isSelected
-                                                    ? "bg-blue-600 text-white"
+                                                    ? "text-white"
                                                     : "bg-slate-100 text-slate-600"
-                                            )}>
+                                            )}
+                                            style={isSelected ? { backgroundColor: '#1B557E' } : undefined}
+                                            >
                                                 {scheme.code}
                                             </span>
 
-                                            {/* Name */}
+                                            {/* Name — stripped of the (XXXX) prefix since code badge shows it */}
                                             <span className={cn(
                                                 "flex-1 text-sm truncate",
-                                                isSelected ? "font-semibold text-blue-900" : "text-slate-700"
-                                            )}>
-                                                {scheme.name}
+                                                isSelected ? "font-semibold" : "text-slate-700"
+                                            )}
+                                            style={isSelected ? { color: '#132939' } : undefined}
+                                            >
+                                                {stripCodePrefix(scheme.name)}
                                             </span>
 
                                             {/* Meta */}

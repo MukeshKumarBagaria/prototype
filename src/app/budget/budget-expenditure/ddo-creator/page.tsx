@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export default function DDOCreatorPage() {
-    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
     const [selectedScheme, setSelectedScheme] = useState<string | null>(null);
     const [filledSchemes, setFilledSchemes] = useState<Set<string>>(new Set());
 
