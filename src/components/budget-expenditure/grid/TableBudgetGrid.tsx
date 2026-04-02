@@ -103,7 +103,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
 
     // Column visibility state - all visible by default (removed chargedOrVoted)
     const [visibleColumns, setVisibleColumns] = useState<Set<string>>(new Set([
-        'srNo', 'budgetHead', 'detailCodeNomenclature', 'schemeNomenclature',
+        'srNo', 'budgetHead', 'detailCodeNomenclature',
         'bePrev', 'expPrev', 'beCurr', 'allotCurr', 'expCutoff',
         'proposedExp', 'totalRE', 'reOverBE', 'be1', 'be1OverBE',
         'be2', 'be3', 'remarks'
@@ -260,7 +260,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
     const columns = [
         { key: 'srNo', label: 'Sr. No', width: 'w-12 min-w-[3rem] max-w-[3rem]', sticky: true },
         { key: 'budgetHead', label: 'Budget Head', width: 'w-64 min-w-[16rem] max-w-[16rem]', sticky: true },
-        { key: 'detailCodeNomenclature', label: 'Detail Code Nomenclature', width: 'w-44 min-w-[11rem] max-w-[11rem]', sticky: true },
+        { key: 'detailCodeNomenclature', label: 'Detail Head Nomenclature', width: 'w-44 min-w-[11rem] max-w-[11rem]', sticky: true },
         // Budget head breakdown columns (hidden by default)
         { key: 'demandNo', label: 'Demand No.', width: 'w-16' },
         { key: 'majorHead', label: 'Major Head', width: 'w-16' },
@@ -271,20 +271,20 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
         { key: 'chargedOrVoted', label: 'C/V', width: 'w-14' },
         { key: 'objectHead', label: 'Object', width: 'w-16' },
         { key: 'detailHead', label: 'Detail', width: 'w-16' },
-        { key: 'objectCodeNomenclature', label: 'Object Code Nomenclature', width: 'w-44' },
+        { key: 'objectCodeNomenclature', label: 'Object Head Nomenclature', width: 'w-44' },
         { key: 'schemeNomenclature', label: 'Scheme Name', width: 'w-40' },
-        { key: 'bePrev', label: `BE (${FY.prev})`, width: 'w-28', numeric: true },
-        { key: 'expPrev', label: `Exp. (${FY.prev})`, width: 'w-28', numeric: true },
-        { key: 'beCurr', label: `BE (${FY.curr})`, width: 'w-28', numeric: true },
-        { key: 'allotCurr', label: `Allot. (${FY.curr})`, width: 'w-28', numeric: true },
-        { key: 'expCutoff', label: 'Exp. Cutoff', width: 'w-28', numeric: true },
-        { key: 'proposedExp', label: 'Proposed Exp.*', width: 'w-32', editable: true, numeric: true },
-        { key: 'totalRE', label: 'Total RE', width: 'w-28', numeric: true },
+        { key: 'bePrev', label: `BE (${FY.prev}) (in ₹'000)`, width: 'w-28', numeric: true },
+        { key: 'expPrev', label: `Exp. (${FY.prev}) (in ₹'000)`, width: 'w-28', numeric: true },
+        { key: 'beCurr', label: `BE (${FY.curr}) (in ₹'000)`, width: 'w-28', numeric: true },
+        { key: 'allotCurr', label: `Allot. (${FY.curr}) (in ₹'000)`, width: 'w-28', numeric: true },
+        { key: 'expCutoff', label: 'Exp. Cutoff (in ₹\'000)', width: 'w-28', numeric: true },
+        { key: 'proposedExp', label: 'Proposed Exp.* (in ₹\'000)', width: 'w-32', editable: true, numeric: true },
+        { key: 'totalRE', label: 'Total RE (in ₹\'000)', width: 'w-28', numeric: true },
         { key: 'reOverBE', label: '% RE/BE', width: 'w-20' },
-        { key: 'be1', label: `BE1 (${FY.next})*`, width: 'w-32', editable: true, numeric: true },
+        { key: 'be1', label: `BE1 (${FY.next})* (in ₹'000)`, width: 'w-32', editable: true, numeric: true },
         { key: 'be1OverBE', label: '% BE1/BE', width: 'w-20' },
-        { key: 'be2', label: `BE2 (${FY.nextPlus1})`, width: 'w-32', editable: true, numeric: true },
-        { key: 'be3', label: `BE3 (${FY.nextPlus2})`, width: 'w-32', editable: true, numeric: true },
+        { key: 'be2', label: `BE2 (${FY.nextPlus1}) (in ₹'000)`, width: 'w-32', editable: true, numeric: true },
+        { key: 'be3', label: `BE3 (${FY.nextPlus2}) (in ₹'000)`, width: 'w-32', editable: true, numeric: true },
         { key: 'remarks', label: 'DDO Remarks', width: 'w-48', editable: true },
     ];
 
@@ -383,13 +383,14 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-6">
                                 {/* Pending Card */}
+                                {/* Total Budget Line Card */}
                                 <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center">
-                                        <Clock className="text-amber-600" size={20} />
+                                    <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                                        <Layers className="text-blue-600" size={20} />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500 uppercase font-medium">Pending</p>
-                                        <p className="text-xl font-bold text-slate-900">{pendingCount}</p>
+                                        <p className="text-xs text-slate-500 uppercase font-medium">Total Budget Line</p>
+                                        <p className="text-xl font-bold text-slate-900">{items.length}</p>
                                     </div>
                                 </div>
                                 <div className="w-px h-10 bg-slate-200" />
@@ -404,14 +405,14 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                     </div>
                                 </div>
                                 <div className="w-px h-10 bg-slate-200" />
-                                {/* Returned Card */}
+                                {/* Pending Card */}
                                 <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-xl bg-orange-100 flex items-center justify-center">
-                                        <RotateCcw className="text-orange-600" size={20} />
+                                    <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                                        <Clock className="text-amber-600" size={20} />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500 uppercase font-medium">Returned</p>
-                                        <p className="text-xl font-bold text-slate-900">{returnedCount}</p>
+                                        <p className="text-xs text-slate-500 uppercase font-medium">Pending</p>
+                                        <p className="text-xl font-bold text-slate-900">{items.length - completedCount}</p>
                                     </div>
                                 </div>
                             </div>
@@ -563,7 +564,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                             <div className="h-20 w-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
                                 <FileSpreadsheet className="text-blue-600" size={36} />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-800 mb-2">Select a Budget Line to Begin</h3>
+                            <h3 className="text-xl font-bold text-slate-800 mb-2">Select a Scheme to Begin</h3>
                             <p className="text-sm text-slate-500 max-w-md mx-auto">
                                 You have 
                                 <button 
@@ -576,7 +577,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                     {schemes.length} schemes
                                 </button> 
                                 assigned.
-                                Please select a budget line from the panel above to view and fill its details.
+                                Please select a scheme from the panel above to view and fill its details.
                             </p>
                         </div>
                     </div>
@@ -743,24 +744,21 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                             case 'schemeNomenclature':
                                                 return <td key={colKey} className={cn("px-2 py-2 text-slate-700 font-medium max-w-[160px]", columnColors[colKey])} title={item.schemeNomenclature || item.scheme}><div className="whitespace-normal break-words">{item.schemeNomenclature || item.scheme}</div></td>;
                                             case 'bePrev':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency(history?.fy1 || 0)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.fy1 || 0) / 1000)}</td>;
                                             case 'expPrev':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency(history?.actualTillDate || 0)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.actualTillDate || 0) / 1000)}</td>;
                                             case 'beCurr':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency(history?.currentYearBE || 0)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.currentYearBE || 0) / 1000)}</td>;
                                             case 'allotCurr':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency(history?.currentYearBE || 0)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.currentYearBE || 0) / 1000)}</td>;
                                             case 'expCutoff':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency(history?.actualTillDate || 0)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.actualTillDate || 0) / 1000)}</td>;
                                             case 'proposedExp':
                                                 return <td key={colKey} className="px-1 py-1 bg-blue-50/50 relative">
-                                                    <Input type="number" value={data.reviseEstimateCY || ''} onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" />
-                                                    {/* role === 'creator' && est?.bcoTotalRE && est.bcoTotalRE !== data.reviseEstimateCY && (
-                                                        <div className="absolute top-0 right-0 w-2 h-2 bg-amber-500 rounded-full" title="Edited by BCO" />
-                                                    ) */}
+                                                    <Input type="number" value={data.reviseEstimateCY ? data.reviseEstimateCY / 1000 : ''} onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', (parseFloat(e.target.value) || 0) * 1000)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" />
                                                 </td>;
                                             case 'totalRE':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric font-semibold text-slate-900", columnColors[colKey])}>{formatCurrency(totalRE)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric font-semibold text-slate-900", columnColors[colKey])}>{formatCurrency(totalRE / 1000)}</td>;
                                             case 'reOverBE':
                                                 return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-xs", reOverBE && parseFloat(reOverBE) < 0 ? "text-red-600" : "text-slate-600")}>{reOverBE ? `${reOverBE}%` : '—'}</td>;
                                             case 'be1':
@@ -777,18 +775,18 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                                                         : "bg-white border-teal-400 text-teal-700 hover:border-teal-500 hover:bg-teal-50"
                                                                 )}
                                                             >
-                                                                {data.budgetEstimateNextYear > 0 ? formatCurrency(data.budgetEstimateNextYear) : <><Layers size={12} className="text-teal-500" /> Add</>}
+                                                                {data.budgetEstimateNextYear > 0 ? formatCurrency(data.budgetEstimateNextYear / 1000) : <><Layers size={12} className="text-teal-500" /> Add</>}
                                                             </div>
                                                         </td>
                                                     );
                                                 }
-                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.budgetEstimateNextYear || ''} onChange={(e) => updateFormData(item.id, 'budgetEstimateNextYear', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
+                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.budgetEstimateNextYear ? data.budgetEstimateNextYear / 1000 : ''} onChange={(e) => updateFormData(item.id, 'budgetEstimateNextYear', (parseFloat(e.target.value) || 0) * 1000)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
                                             case 'be1OverBE':
                                                 return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-xs", be1OverBE && parseFloat(be1OverBE) < 0 ? "text-red-600" : "text-slate-600")}>{be1OverBE ? `${be1OverBE}%` : '—'}</td>;
                                             case 'be2':
-                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.forwardEstimateY2 || ''} onChange={(e) => updateFormData(item.id, 'forwardEstimateY2', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
+                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.forwardEstimateY2 ? data.forwardEstimateY2 / 1000 : ''} onChange={(e) => updateFormData(item.id, 'forwardEstimateY2', (parseFloat(e.target.value) || 0) * 1000)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
                                             case 'be3':
-                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.forwardEstimateY3 || ''} onChange={(e) => updateFormData(item.id, 'forwardEstimateY3', parseFloat(e.target.value) || 0)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
+                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.forwardEstimateY3 ? data.forwardEstimateY3 / 1000 : ''} onChange={(e) => updateFormData(item.id, 'forwardEstimateY3', (parseFloat(e.target.value) || 0) * 1000)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
                                             case 'remarks':
                                                 return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="text" value={data.remarks || ''} onChange={(e) => updateFormData(item.id, 'remarks', e.target.value)} disabled={isSubmitted} className="h-7 text-xs border-blue-200 focus:border-blue-400 bg-white" placeholder="Remarks..." /></td>;
                                             default:
@@ -849,7 +847,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                                 ) : col.key === 'budgetHead' ? (
                                                     <span className="text-slate-600">{filteredItems.length} items</span>
                                                 ) : isNumeric ? (
-                                                    <span className="text-slate-900">{formatCurrency(sum)}</span>
+                                                    <span className="text-slate-900">{formatCurrency(sum / 1000)}</span>
                                                 ) : null}
                                             </td>
                                         );

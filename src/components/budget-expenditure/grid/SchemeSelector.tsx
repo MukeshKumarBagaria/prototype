@@ -82,7 +82,7 @@ export function SchemeSelector({ schemes, selectedScheme, filledSchemes, onSchem
             {/* Compact Bar */}
             <div className="flex items-center gap-3 px-4 py-2.5">
                 <div className="flex-shrink-0 px-3 py-1.5 rounded-lg font-semibold text-white text-xs whitespace-nowrap" style={{ background: 'linear-gradient(135deg, #1B6498, #1B557E)' }}>
-                    Select Budget Line
+                    Select Scheme
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -99,20 +99,17 @@ export function SchemeSelector({ schemes, selectedScheme, filledSchemes, onSchem
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
                             {currentScheme ? (
                                 <>
-                                    <div className="h-6 w-6 rounded text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#1B557E' }}>
-                                        {currentScheme.code.slice(-2)}
-                                    </div>
                                     <div className="min-w-0 flex-1">
                                         <span className="text-sm font-semibold text-slate-800 truncate block">
                                             {currentScheme.name}
                                         </span>
                                     </div>
                                     <span className="text-xs text-slate-400 flex-shrink-0">
-                                        {currentScheme.budgetLineCount} lines
+                                        This scheme contain {currentScheme.budgetLineCount} budget line
                                     </span>
                                 </>
                             ) : (
-                                <span className="text-sm text-slate-400">Select a budget line to begin...</span>
+                                <span className="text-sm text-slate-400">Select a scheme to begin...</span>
                             )}
                         </div>
                         <ChevronDown
@@ -248,18 +245,6 @@ export function SchemeSelector({ schemes, selectedScheme, filledSchemes, onSchem
                                                 {isFilled ? <CheckCircle2 size={15} /> : <Circle size={15} />}
                                             </div>
 
-                                            {/* Code badge */}
-                                            <span className={cn(
-                                                "text-xs font-mono font-bold px-1.5 py-0.5 rounded flex-shrink-0",
-                                                isSelected
-                                                    ? "text-white"
-                                                    : "bg-slate-100 text-slate-600"
-                                            )}
-                                            style={isSelected ? { backgroundColor: '#1B557E' } : undefined}
-                                            >
-                                                {scheme.code}
-                                            </span>
-
                                             {/* Name — stripped of the (XXXX) prefix since code badge shows it */}
                                             <span className={cn(
                                                 "flex-1 text-sm truncate",
@@ -273,7 +258,7 @@ export function SchemeSelector({ schemes, selectedScheme, filledSchemes, onSchem
                                             {/* Meta */}
                                             <div className="flex items-center gap-2 flex-shrink-0">
                                                 <span className="text-xs text-slate-400">
-                                                    {scheme.budgetLineCount} {scheme.budgetLineCount === 1 ? 'line' : 'lines'}
+                                                    This scheme contain {scheme.budgetLineCount} budget line
                                                 </span>
                                                 {isFilled && (
                                                     <span className="text-[10px] font-bold uppercase text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">

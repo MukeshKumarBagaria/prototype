@@ -399,12 +399,9 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle, schemes,
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-8">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center">
-                                        <Clock className="text-amber-600" size={20} />
-                                    </div>
                                     <div>
-                                        <p className="text-xs text-slate-500 uppercase font-medium">Pending</p>
-                                        <p className="text-xl font-bold text-slate-900">{pendingCount}</p>
+                                        <p className="text-xs text-slate-500 uppercase font-medium">Total Budget Line</p>
+                                        <p className="text-xl font-bold text-slate-900">{items.length}</p>
                                     </div>
                                 </div>
                                 <div className="w-px h-10 bg-slate-200" />
@@ -418,14 +415,13 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                     </div>
                                 </div>
                                 <div className="w-px h-10 bg-slate-200" />
-                                {/* Returned Status Card */}
                                 <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-xl bg-orange-100 flex items-center justify-center">
-                                        <RotateCcw className="text-orange-600" size={20} />
+                                    <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                                        <Clock className="text-amber-600" size={20} />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500 uppercase font-medium">Returned</p>
-                                        <p className="text-xl font-bold text-slate-900">{returnedCount}</p>
+                                        <p className="text-xs text-slate-500 uppercase font-medium">Pending</p>
+                                        <p className="text-xl font-bold text-slate-900">{items.length - completedCount}</p>
                                     </div>
                                 </div>
                                 <div className="w-px h-10 bg-slate-200" />
@@ -548,7 +544,7 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                 <div className="h-20 w-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
                                     <FileSpreadsheet className="text-blue-600" size={36} />
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-800 mb-2">Select a Budget Line to Begin</h3>
+                                <h3 className="text-xl font-bold text-slate-800 mb-2">Select a Scheme to Begin</h3>
                                 <p className="text-sm text-slate-500 max-w-md">
                                     You have 
                                     <button 
@@ -562,7 +558,7 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                         {schemes.length} schemes
                                     </button> 
                                     assigned.
-                                    Please select a budget line from the panel above to view and fill its details.
+                                    Please select a scheme from the panel above to view and fill its details.
                                 </p>
                             </div>
                         </div>
