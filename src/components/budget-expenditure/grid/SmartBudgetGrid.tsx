@@ -19,6 +19,11 @@ import { requiresBreakup } from '@/data/budget-expenditure/breakupConfig';
 import { useRouter } from 'next/navigation';
 import { BreakupModal, BREAKUP_REQUIRED_HEADS, BreakupItem } from './BreakupModal';
 import { TrendAnalysisPopup } from './TrendAnalysisPopup';
+import dynamic from 'next/dynamic';
+const DotLottiePlayer = dynamic(
+    () => import('@lottiefiles/dotlottie-react').then(mod => mod.DotLottieReact),
+    { ssr: false }
+);
 import { AssetRequirementsModal } from './AssetRequirementsModal';
 import { AuditTrailModal } from './AuditTrailModal';
 import { cn } from '@/lib/utils';
@@ -384,6 +389,31 @@ export function SmartBudgetGrid({ role, items, estimations, viewToggle, schemes,
             {/* Fixed Header Section */}
             <header className="flex-shrink-0 bg-slate-50 px-[40px] pt-4">
                 <div className="w-full">
+                    {/* Page Title */}
+                    <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center gap-3">
+                            <div className="h-16 w-16 -ml-2 mix-blend-multiply flex items-center justify-center">
+                                <DotLottiePlayer
+                                    src="/gif/budgetestimation.lottie"
+                                    loop
+                                    autoplay
+                                    style={{ width: '100%', height: '100%' }}
+                                />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Budget Expenditure Estimation</h1>
+                                <p className="text-sm text-slate-500 font-medium">Review and allocate budget estimates for your assigned schemes</p>
+                            </div>
+                        </div>
+                        
+                        <div className="text-right">
+                            <div className="inline-flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
+                                <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></div>
+                                <span className="text-sm font-bold text-indigo-700">Financial Year {FY.curr}</span>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* === Scheme Selector === */}
                     {schemes && schemes.length > 0 && (
                         <SchemeSelector

@@ -13,6 +13,11 @@ import { SchemeSelector, SchemeInfo } from './SchemeSelector';
 import { requiresBreakup } from '@/data/budget-expenditure/breakupConfig';
 import { BreakupModal, BreakupItem } from './BreakupModal';
 import { TrendAnalysisPopup } from './TrendAnalysisPopup';
+import dynamic from 'next/dynamic';
+const DotLottiePlayer = dynamic(
+    () => import('@lottiefiles/dotlottie-react').then(mod => mod.DotLottieReact),
+    { ssr: false }
+);
 import {
     Select,
     SelectContent,
@@ -370,6 +375,31 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
             {/* Fixed Header Section */}
             <header className="flex-shrink-0 bg-slate-50 px-[40px] pt-4">
                 <div className="w-full">
+                    {/* Page Title */}
+                    <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center gap-3">
+                            <div className="h-16 w-16 -ml-2 mix-blend-multiply flex items-center justify-center">
+                                <DotLottiePlayer
+                                    src="/gif/budgetestimation.lottie"
+                                    loop
+                                    autoplay
+                                    style={{ width: '100%', height: '100%' }}
+                                />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Budget Expenditure Estimation</h1>
+                                <p className="text-sm text-slate-500 font-medium">Review and allocate budget estimates for your assigned schemes</p>
+                            </div>
+                        </div>
+                        
+                        <div className="text-right">
+                            <div className="inline-flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">
+                                <div className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></div>
+                                <span className="text-sm font-bold text-indigo-700">Financial Year {FY.curr}</span>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* === Scheme Selector === */}
                     {schemes && schemes.length > 0 && (
                         <SchemeSelector
@@ -611,7 +641,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                                     isFirstSticky && "sticky left-0 z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]",
                                                     isSecondSticky && "sticky left-12 z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]",
                                                     isThirdSticky && "sticky left-[19rem] z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]",
-                                                    col.editable && "text-[#1B6498] bg-[#E5F4FF]/60",
+                                                    col.editable && "text-[#1B6498] bg-[#EFF6FF]",
                                                     columnColor && columnColor.replace('bg-', 'bg-').replace('-50', '-100'),
                                                     !isFirstSticky && !isSecondSticky && !isThirdSticky && !col.editable && !columnColor && "bg-slate-50"
                                                 )}
@@ -619,29 +649,32 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                                 <div className="flex flex-col gap-2 w-full">
                                                     {/* Header Label with Filter & Color Actions */}
                                                     <div className="flex items-start gap-1 w-full min-h-[3.5rem]">
-                                                        <span className="whitespace-pre-line break-words w-full leading-[1.35] text-slate-700" title={col.label}>{col.label}</span>
+                                                        <span className={cn(
+                                                            "whitespace-pre-line break-words w-full leading-[1.35]",
+                                                            col.editable ? "text-[#1B6498]" : "text-slate-700"
+                                                        )} title={col.label}>{col.label}</span>
                                                         <div className="flex items-center gap-0.5 ml-auto flex-shrink-0">
                                                             {/* Filter Button */}
                                                             <button
                                                                 onClick={() => setActiveFilterColumn(activeFilterColumn === col.key ? null : col.key)}
                                                                 className={cn(
                                                                     "p-0.5 rounded hover:bg-slate-200 transition-colors",
-                                                                    hasFilter && "text-blue-600"
+                                                                    hasFilter && "text-indigo-600 bg-indigo-50"
                                                                 )}
                                                                 title="Filter column"
                                                             >
-                                                                <Filter size={12} className={hasFilter ? "text-blue-600" : "text-slate-400"} />
+                                                                <Filter size={12} className={hasFilter ? "text-indigo-600" : "text-indigo-400 hover:text-indigo-600"} />
                                                             </button>
                                                             {/* Color Button */}
                                                             <button
                                                                 onClick={() => setShowColorPicker(showColorPicker === col.key ? null : col.key)}
                                                                 className={cn(
                                                                     "p-0.5 rounded hover:bg-slate-200 transition-colors",
-                                                                    columnColor && "text-blue-600"
+                                                                    columnColor && "text-pink-600 bg-pink-50"
                                                                 )}
                                                                 title="Color column"
                                                             >
-                                                                <Palette size={12} className={columnColor ? "text-blue-600" : "text-slate-400"} />
+                                                                <Palette size={12} className={columnColor ? "text-pink-600" : "text-pink-400 hover:text-pink-600"} />
                                                             </button>
                                                         </div>
                                                     </div>
