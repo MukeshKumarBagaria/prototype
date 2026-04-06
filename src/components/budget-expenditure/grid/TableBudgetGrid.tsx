@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import { SchemeSelector, SchemeInfo } from './SchemeSelector';
 import { requiresBreakup } from '@/data/budget-expenditure/breakupConfig';
 import { BreakupModal, BreakupItem } from './BreakupModal';
+import { TrendAnalysisPopup } from './TrendAnalysisPopup';
 import {
     Select,
     SelectContent,
@@ -103,7 +104,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
 
     // Column visibility state - all visible by default (removed chargedOrVoted)
     const [visibleColumns, setVisibleColumns] = useState<Set<string>>(new Set([
-        'srNo', 'budgetHead', 'detailCodeNomenclature',
+        'srNo', 'budgetHead', 'detailCodeNomenclature', 'trend',
         'bePrev', 'expPrev', 'beCurr', 'allotCurr', 'expCutoff',
         'proposedExp', 'totalRE', 'reOverBE', 'be1', 'be1OverBE',
         'be2', 'be3', 'remarks'
@@ -273,18 +274,19 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
         { key: 'detailHead', label: 'Detail', width: 'w-16' },
         { key: 'objectCodeNomenclature', label: 'Object Head Nomenclature', width: 'w-44' },
         { key: 'schemeNomenclature', label: 'Scheme Name', width: 'w-40' },
-        { key: 'bePrev', label: `BE (${FY.prev}) (in ₹'000)`, width: 'w-28', numeric: true },
-        { key: 'expPrev', label: `Exp. (${FY.prev}) (in ₹'000)`, width: 'w-28', numeric: true },
-        { key: 'beCurr', label: `BE (${FY.curr}) (in ₹'000)`, width: 'w-28', numeric: true },
-        { key: 'allotCurr', label: `Allot. (${FY.curr}) (in ₹'000)`, width: 'w-28', numeric: true },
-        { key: 'expCutoff', label: 'Exp. Cutoff (in ₹\'000)', width: 'w-28', numeric: true },
-        { key: 'proposedExp', label: 'Proposed Exp.* (in ₹\'000)', width: 'w-32', editable: true, numeric: true },
-        { key: 'totalRE', label: 'Total RE (in ₹\'000)', width: 'w-28', numeric: true },
-        { key: 'reOverBE', label: '% RE/BE', width: 'w-20' },
-        { key: 'be1', label: `BE1 (${FY.next})* (in ₹'000)`, width: 'w-32', editable: true, numeric: true },
-        { key: 'be1OverBE', label: '% BE1/BE', width: 'w-20' },
-        { key: 'be2', label: `BE2 (${FY.nextPlus1}) (in ₹'000)`, width: 'w-32', editable: true, numeric: true },
-        { key: 'be3', label: `BE3 (${FY.nextPlus2}) (in ₹'000)`, width: 'w-32', editable: true, numeric: true },
+        { key: 'trend', label: 'Trend', width: 'w-16 min-w-[4rem]' },
+        { key: 'bePrev', label: `BE\n(${FY.prev})\n(in ₹'000)`, width: 'w-32 min-w-[8rem]', numeric: true },
+        { key: 'expPrev', label: `Exp.\n(${FY.prev})\n(in ₹'000)`, width: 'w-32 min-w-[8rem]', numeric: true },
+        { key: 'beCurr', label: `BE\n(${FY.curr})\n(in ₹'000)`, width: 'w-32 min-w-[8rem]', numeric: true },
+        { key: 'allotCurr', label: `Allot.\n(${FY.curr})\n(in ₹'000)`, width: 'w-32 min-w-[8rem]', numeric: true },
+        { key: 'expCutoff', label: `Exp. Cutoff\n(in ₹'000)`, width: 'w-32 min-w-[8rem]', numeric: true },
+        { key: 'proposedExp', label: `Proposed\nExp.*\n(in ₹'000)`, width: 'w-36 min-w-[9rem]', editable: true, numeric: true },
+        { key: 'totalRE', label: `Total RE\n(in ₹'000)`, width: 'w-32 min-w-[8rem]', numeric: true },
+        { key: 'reOverBE', label: '% RE/BE', width: 'w-24' },
+        { key: 'be1', label: `BE1\n(${FY.next})*\n(in ₹'000)`, width: 'w-36 min-w-[9rem]', editable: true, numeric: true },
+        { key: 'be1OverBE', label: '% BE1/BE', width: 'w-24' },
+        { key: 'be2', label: `BE2\n(${FY.nextPlus1})\n(in ₹'000)`, width: 'w-36 min-w-[9rem]', editable: true, numeric: true },
+        { key: 'be3', label: `BE3\n(${FY.nextPlus2})\n(in ₹'000)`, width: 'w-36 min-w-[9rem]', editable: true, numeric: true },
         { key: 'remarks', label: 'DDO Remarks', width: 'w-48', editable: true },
     ];
 
@@ -582,12 +584,16 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                         </div>
                     </div>
                 ) : (
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col overflow-hidden flex-1">
+                <div className="bg-white rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-200 flex flex-col overflow-hidden flex-1">
                     {/* Single scrollable container for entire table including footer */}
+                    <style dangerouslySetInnerHTML={{__html: `
+                        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&display=swap');
+                        .noto-sans { font-family: 'Noto Sans', sans-serif; }
+                    `}} />
                     <div ref={tableContainerRef} className="flex-1 overflow-auto">
-                        <table className="w-full text-sm border-collapse [&_th]:border-r-2 [&_th]:border-[#BFBFBF] [&_td]:border-r-2 [&_td]:border-[#BFBFBF] border-x-2 border-[#BFBFBF]">
+                        <table className="w-full text-sm border-collapse [&_th]:border-r [&_th]:border-slate-200 [&_td]:border-r [&_td]:border-slate-200 border-x border-slate-200 noto-sans bg-white">
                             {/* Sticky Header */}
-                            <thead className="bg-[#f8fafc] sticky top-0 z-20">
+                            <thead className="sticky top-0 z-20 shadow-sm border-b-2 border-slate-300">
                                 <tr>
                                     {displayColumns.map((col, idx) => {
                                         const isFirstSticky = col.key === 'srNo';
@@ -600,19 +606,20 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                             <th
                                                 key={col.key}
                                                 className={cn(
-                                                    "px-2 py-2 text-left text-xs font-bold text-slate-700 uppercase tracking-wide border-b border-slate-200",
+                                                    "px-3 py-3 text-left text-xs font-bold text-[#1e3a5f] uppercase tracking-wider border-b border-slate-300 align-top",
                                                     col.width,
-                                                    isFirstSticky && "sticky left-0 z-30 bg-slate-100",
-                                                    isSecondSticky && "sticky left-12 z-30 bg-slate-100",
-                                                    isThirdSticky && "sticky left-[19rem] z-30 bg-slate-100",
-                                                    col.editable && "text-blue-800 bg-blue-50",
-                                                    columnColor && columnColor.replace('bg-', 'bg-').replace('-50', '-100')
+                                                    isFirstSticky && "sticky left-0 z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]",
+                                                    isSecondSticky && "sticky left-12 z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]",
+                                                    isThirdSticky && "sticky left-[19rem] z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]",
+                                                    col.editable && "text-[#1B6498] bg-[#E5F4FF]/60",
+                                                    columnColor && columnColor.replace('bg-', 'bg-').replace('-50', '-100'),
+                                                    !isFirstSticky && !isSecondSticky && !isThirdSticky && !col.editable && !columnColor && "bg-slate-50"
                                                 )}
                                             >
-                                                <div className="flex flex-col gap-1 w-full pt-1">
+                                                <div className="flex flex-col gap-2 w-full">
                                                     {/* Header Label with Filter & Color Actions */}
-                                                    <div className="flex items-start gap-1 w-full">
-                                                        <span className="whitespace-normal break-words w-full leading-tight" title={col.label}>{col.label}</span>
+                                                    <div className="flex items-start gap-1 w-full min-h-[3.5rem]">
+                                                        <span className="whitespace-pre-line break-words w-full leading-[1.35] text-slate-700" title={col.label}>{col.label}</span>
                                                         <div className="flex items-center gap-0.5 ml-auto flex-shrink-0">
                                                             {/* Filter Button */}
                                                             <button
@@ -717,50 +724,52 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                             case 'srNo':
                                                 return <td key={colKey} className={cn("px-2 py-2 w-12 min-w-[3rem] max-w-[3rem] sticky left-0 z-10 font-bold text-blue-600 text-center", stickyBg)}>{item.srNo}</td>;
                                             case 'budgetHead':
-                                                return <td key={colKey} className={cn("px-2 py-2 w-64 min-w-[16rem] max-w-[16rem] sticky left-12 z-10", stickyBg)}><code className="text-xs font-numeric font-semibold text-slate-900">{item.budgetHead}</code></td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 w-64 min-w-[16rem] max-w-[16rem] sticky left-12 z-10", stickyBg)}><code className="text-sm font-numeric font-semibold text-slate-900">{item.budgetHead}</code></td>;
                                             case 'detailCodeNomenclature':
-                                                return <td key={colKey} className={cn("px-2 py-2 w-44 min-w-[11rem] max-w-[11rem] sticky left-[19rem] z-10 text-xs font-medium text-slate-700", stickyBg)}><div className="whitespace-normal break-words" title={DETAIL_HEAD_NOMENCLATURE[item.detailHead] || item.schemeNomenclature || item.detailHead}>{DETAIL_HEAD_NOMENCLATURE[item.detailHead] || item.schemeNomenclature || item.detailHead}</div></td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 w-44 min-w-[11rem] max-w-[11rem] sticky left-[19rem] z-10 text-sm font-medium text-slate-700", stickyBg)}><div className="whitespace-normal break-words" title={DETAIL_HEAD_NOMENCLATURE[item.detailHead] || item.schemeNomenclature || item.detailHead}>{DETAIL_HEAD_NOMENCLATURE[item.detailHead] || item.schemeNomenclature || item.detailHead}</div></td>;
                                             case 'objectCodeNomenclature':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-xs font-medium text-slate-700", columnColors[colKey])}>{OBJECT_HEAD_NOMENCLATURE[item.objectHead] || item.objectHead}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-sm font-medium text-slate-700", columnColors[colKey])}>{OBJECT_HEAD_NOMENCLATURE[item.objectHead] || item.objectHead}</td>;
                                             // Budget head component columns
                                             case 'demandNo':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-xs font-medium text-slate-700", columnColors[colKey])}>{item.demandNo}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-sm font-medium text-slate-700", columnColors[colKey])}>{item.demandNo}</td>;
                                             case 'majorHead':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-xs font-medium text-slate-700", columnColors[colKey])}>{item.majorHead}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-sm font-medium text-slate-700", columnColors[colKey])}>{item.majorHead}</td>;
                                             case 'subMajorHead':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-xs font-medium text-slate-700", columnColors[colKey])}>{item.subMajorHead}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-sm font-medium text-slate-700", columnColors[colKey])}>{item.subMajorHead}</td>;
                                             case 'minorHead':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-xs font-medium text-slate-700", columnColors[colKey])}>{item.minorHead}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-sm font-medium text-slate-700", columnColors[colKey])}>{item.minorHead}</td>;
                                             case 'segmentHead':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-xs font-medium text-slate-700", columnColors[colKey])}>{item.segmentHead}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-sm font-medium text-slate-700", columnColors[colKey])}>{item.segmentHead}</td>;
                                             case 'ddoCode':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-xs font-medium text-slate-700", columnColors[colKey])}>{item.ddoCode}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-sm font-medium text-slate-700", columnColors[colKey])}>{item.ddoCode}</td>;
                                             case 'chargedOrVoted':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-medium", columnColors[colKey], item.chargedOrVoted === 'Charged' ? 'text-amber-600' : 'text-blue-600')}>{item.chargedOrVoted === 'Charged' ? 'C' : 'V'}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-center text-sm font-medium", columnColors[colKey], item.chargedOrVoted === 'Charged' ? 'text-amber-600' : 'text-blue-600')}>{item.chargedOrVoted === 'Charged' ? 'C' : 'V'}</td>;
                                             case 'objectHead':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-xs font-medium text-slate-700", columnColors[colKey])}>{item.objectHead}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-sm font-medium text-slate-700", columnColors[colKey])}>{item.objectHead}</td>;
                                             case 'detailHead':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-xs font-medium text-slate-700", columnColors[colKey])}>{item.detailHead}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-center font-mono text-sm font-medium text-slate-700", columnColors[colKey])}>{item.detailHead}</td>;
                                             case 'schemeNomenclature':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-slate-700 font-medium max-w-[160px]", columnColors[colKey])} title={item.schemeNomenclature || item.scheme}><div className="whitespace-normal break-words">{item.schemeNomenclature || item.scheme}</div></td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-sm text-slate-700 font-medium max-w-[160px]", columnColors[colKey])} title={item.schemeNomenclature || item.scheme}><div className="whitespace-normal break-words">{item.schemeNomenclature || item.scheme}</div></td>;
+                                            case 'trend':
+                                                return <td key={colKey} className={cn("px-2 py-2 text-center", columnColors[colKey])}><div className="flex items-center justify-center -ml-2"><TrendAnalysisPopup budgetLine={item} history={history} /></div></td>;
                                             case 'bePrev':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.fy1 || 0) / 1000)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right text-sm font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.fy1 || 0) / 1000)}</td>;
                                             case 'expPrev':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.actualTillDate || 0) / 1000)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right text-sm font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.actualTillDate || 0) / 1000)}</td>;
                                             case 'beCurr':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.currentYearBE || 0) / 1000)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right text-sm font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.currentYearBE || 0) / 1000)}</td>;
                                             case 'allotCurr':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.currentYearBE || 0) / 1000)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right text-sm font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.currentYearBE || 0) / 1000)}</td>;
                                             case 'expCutoff':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.actualTillDate || 0) / 1000)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right text-sm font-numeric text-slate-700", columnColors[colKey])}>{formatCurrency((history?.actualTillDate || 0) / 1000)}</td>;
                                             case 'proposedExp':
                                                 return <td key={colKey} className="px-1 py-1 bg-blue-50/50 relative">
-                                                    <Input type="number" value={data.reviseEstimateCY ? data.reviseEstimateCY / 1000 : ''} onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', (parseFloat(e.target.value) || 0) * 1000)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" />
+                                                    <Input type="number" value={data.reviseEstimateCY ? data.reviseEstimateCY / 1000 : ''} onChange={(e) => updateFormData(item.id, 'reviseEstimateCY', (parseFloat(e.target.value) || 0) * 1000)} disabled={isSubmitted} className="h-8 text-sm font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" />
                                                 </td>;
                                             case 'totalRE':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric font-semibold text-slate-900", columnColors[colKey])}>{formatCurrency(totalRE / 1000)}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right text-sm font-numeric font-semibold text-slate-900", columnColors[colKey])}>{formatCurrency(totalRE / 1000)}</td>;
                                             case 'reOverBE':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-xs", reOverBE && parseFloat(reOverBE) < 0 ? "text-red-600" : "text-slate-600")}>{reOverBE ? `${reOverBE}%` : '—'}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-sm", reOverBE && parseFloat(reOverBE) < 0 ? "text-red-600" : "text-slate-600")}>{reOverBE ? `${reOverBE}%` : '—'}</td>;
                                             case 'be1':
                                                 // Check if this item requires breakup
                                                 if (requiresBreakup(item.objectHead, item.detailHead)) {
@@ -769,26 +778,26 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                                             <div
                                                                 onClick={() => !isSubmitted && (() => { setActiveBreakupLine(item); setBreakupModalOpen(true); })()}
                                                                 className={cn(
-                                                                    "h-7 px-2 text-xs font-numeric border-2 border-dashed rounded flex items-center justify-end cursor-pointer transition-all gap-1",
+                                                                    "h-8 px-2 text-sm font-numeric border-2 border-dashed rounded flex items-center justify-end cursor-pointer transition-all gap-1",
                                                                     isSubmitted
                                                                         ? "bg-slate-100 border-slate-300 text-slate-500 cursor-not-allowed"
                                                                         : "bg-white border-teal-400 text-teal-700 hover:border-teal-500 hover:bg-teal-50"
                                                                 )}
                                                             >
-                                                                {data.budgetEstimateNextYear > 0 ? formatCurrency(data.budgetEstimateNextYear / 1000) : <><Layers size={12} className="text-teal-500" /> Add</>}
+                                                                {data.budgetEstimateNextYear > 0 ? formatCurrency(data.budgetEstimateNextYear / 1000) : <><Layers size={14} className="text-teal-500" /> Add</>}
                                                             </div>
                                                         </td>
                                                     );
                                                 }
-                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.budgetEstimateNextYear ? data.budgetEstimateNextYear / 1000 : ''} onChange={(e) => updateFormData(item.id, 'budgetEstimateNextYear', (parseFloat(e.target.value) || 0) * 1000)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
+                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.budgetEstimateNextYear ? data.budgetEstimateNextYear / 1000 : ''} onChange={(e) => updateFormData(item.id, 'budgetEstimateNextYear', (parseFloat(e.target.value) || 0) * 1000)} disabled={isSubmitted} className="h-8 text-sm font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
                                             case 'be1OverBE':
-                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-xs", be1OverBE && parseFloat(be1OverBE) < 0 ? "text-red-600" : "text-slate-600")}>{be1OverBE ? `${be1OverBE}%` : '—'}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 text-right font-numeric text-sm", be1OverBE && parseFloat(be1OverBE) < 0 ? "text-red-600" : "text-slate-600")}>{be1OverBE ? `${be1OverBE}%` : '—'}</td>;
                                             case 'be2':
-                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.forwardEstimateY2 ? data.forwardEstimateY2 / 1000 : ''} onChange={(e) => updateFormData(item.id, 'forwardEstimateY2', (parseFloat(e.target.value) || 0) * 1000)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
+                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.forwardEstimateY2 ? data.forwardEstimateY2 / 1000 : ''} onChange={(e) => updateFormData(item.id, 'forwardEstimateY2', (parseFloat(e.target.value) || 0) * 1000)} disabled={isSubmitted} className="h-8 text-sm font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
                                             case 'be3':
-                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.forwardEstimateY3 ? data.forwardEstimateY3 / 1000 : ''} onChange={(e) => updateFormData(item.id, 'forwardEstimateY3', (parseFloat(e.target.value) || 0) * 1000)} disabled={isSubmitted} className="h-7 text-xs font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
+                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="number" value={data.forwardEstimateY3 ? data.forwardEstimateY3 / 1000 : ''} onChange={(e) => updateFormData(item.id, 'forwardEstimateY3', (parseFloat(e.target.value) || 0) * 1000)} disabled={isSubmitted} className="h-8 text-sm font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
                                             case 'remarks':
-                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="text" value={data.remarks || ''} onChange={(e) => updateFormData(item.id, 'remarks', e.target.value)} disabled={isSubmitted} className="h-7 text-xs border-blue-200 focus:border-blue-400 bg-white" placeholder="Remarks..." /></td>;
+                                                return <td key={colKey} className="px-1 py-1 bg-blue-50/50"><Input type="text" value={data.remarks || ''} onChange={(e) => updateFormData(item.id, 'remarks', e.target.value)} disabled={isSubmitted} className="h-8 text-sm border-blue-200 focus:border-blue-400 bg-white" placeholder="Remarks..." /></td>;
                                             default:
                                                 return null;
                                         }

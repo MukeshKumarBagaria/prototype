@@ -148,8 +148,8 @@ export function SchemeSelector({ schemes, selectedScheme, filledSchemes, onSchem
                             </span>
                         </div>
                         <div className="hidden sm:block">
-                            <p className="text-xs font-semibold text-slate-700">{filledCount}/{schemes.length}</p>
-                            <p className="text-[10px] text-slate-400">Completed</p>
+                            <p className="text-xs font-bold text-slate-800 tracking-wide">{filledCount}/{schemes.length} Schemes</p>
+                            <p className="text-[10px] font-semibold text-emerald-600 uppercase tracking-widest mt-0.5">Completed</p>
                         </div>
                     </div>
                 </div>
