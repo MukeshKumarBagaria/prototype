@@ -5,7 +5,7 @@ import { BudgetLineItem, HistoricalData, EstimationRecord } from '@/data/budget-
 import { formatCurrency, MOCK_HISTORICAL_DATA } from '@/data/budget-expenditure/mockData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, ArrowLeft, Save, Check, Columns, Eye, EyeOff, Upload, Download, RotateCcw, ArrowRight, CheckCircle2, Clock, Layers, Palette, X, FileSpreadsheet } from 'lucide-react';
+import { Search, Filter, ArrowLeft, Save, Check, Columns, Eye, EyeOff, Upload, Download, RotateCcw, ArrowRight, CheckCircle2, Clock, Layers, Palette, X, FileSpreadsheet, CircleCheck, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -99,6 +99,9 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
     const [savedItems, setSavedItems] = useState<Set<string>>(new Set());
     const [submittedItems, setSubmittedItems] = useState<Set<string>>(new Set());
 
+    // "Mark as Filled" state — tracks which budget lines the user has explicitly marked as completed
+    const [markedFilled, setMarkedFilled] = useState<Set<string>>(new Set());
+
     // Breakup modal state
     const [breakupModalOpen, setBreakupModalOpen] = useState(false);
     const [activeBreakupLine, setActiveBreakupLine] = useState<BudgetLineItem | null>(null);
@@ -112,7 +115,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
         'srNo', 'budgetHead', 'detailCodeNomenclature', 'trend',
         'bePrev', 'expPrev', 'beCurr', 'allotCurr', 'expCutoff',
         'proposedExp', 'totalRE', 'reOverBE', 'be1', 'be1OverBE',
-        'be2', 'be3', 'remarks'
+        'be2', 'be3', 'remarks', 'markFilled'
     ]));
 
     // Column coloring state
@@ -233,10 +236,10 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
 
     // Count returned items
     const returnedCount = estimations.filter(est => est.status === 'returned').length;
-    // Count completed items (saved + submitted)
-    const completedCount = savedItems.size + submittedItems.size;
-    // Pending items = total - completed - returned
-    const pendingCount = items.length - completedCount - returnedCount;
+    // Count completed items based on markedFilled
+    const completedCount = markedFilled.size;
+    // Pending items = total - completed
+    const pendingCount = items.length - completedCount;
 
     const handleSaveAll = () => {
         const itemsWithData = Object.keys(formData).filter(id =>
@@ -293,6 +296,7 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
         { key: 'be2', label: `BE2\n(${FY.nextPlus1})\n(in ₹'000)`, width: 'w-36 min-w-[9rem]', editable: true, numeric: true },
         { key: 'be3', label: `BE3\n(${FY.nextPlus2})\n(in ₹'000)`, width: 'w-36 min-w-[9rem]', editable: true, numeric: true },
         { key: 'remarks', label: 'DDO Remarks', width: 'w-48', editable: true },
+        { key: 'markFilled', label: 'Status', width: 'w-24 min-w-[6rem]' },
     ];
 
     // Handle column color change
@@ -638,9 +642,9 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                                 className={cn(
                                                     "px-3 py-3 text-left text-xs font-bold text-slate-900 uppercase tracking-wider border-b border-r border-slate-300 align-top",
                                                     col.width,
-                                                    isFirstSticky && "sticky left-0 z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r border-slate-300",
-                                                    isSecondSticky && "sticky left-12 z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r border-slate-300",
-                                                    isThirdSticky && "sticky left-[19rem] z-30 bg-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] border-r border-slate-300",
+                                                    isFirstSticky && "sticky left-0 z-30 bg-slate-100 shadow-[inset_-1px_0_0_0_#cbd5e1]",
+                                                    isSecondSticky && "sticky left-12 z-30 bg-slate-100 shadow-[inset_-1px_0_0_0_#cbd5e1]",
+                                                    isThirdSticky && "sticky left-[19rem] z-30 bg-slate-100 shadow-[inset_-1px_0_0_0_#cbd5e1,2px_0_5px_-2px_rgba(0,0,0,0.05)]",
                                                     col.editable && "bg-[#EFF6FF]",
                                                     columnColor && columnColor.replace('bg-', 'bg-').replace('-50', '-100') + " border-r border-slate-200",
                                                     !isFirstSticky && !isSecondSticky && !isThirdSticky && !col.editable && !columnColor && "bg-slate-50 border-r border-slate-200"
@@ -752,11 +756,11 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                     const renderCell = (colKey: string) => {
                                         switch (colKey) {
                                             case 'srNo':
-                                                return <td key={colKey} className={cn("px-2 py-2 w-12 min-w-[3rem] max-w-[3rem] sticky left-0 z-10 font-bold text-blue-600 text-center border-r border-slate-300", stickyBg)}>{item.srNo}</td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 w-12 min-w-[3rem] max-w-[3rem] sticky left-0 z-10 font-bold text-blue-600 text-center shadow-[inset_-1px_0_0_0_#cbd5e1]", stickyBg)}>{item.srNo}</td>;
                                             case 'budgetHead':
-                                                return <td key={colKey} className={cn("px-2 py-2 w-64 min-w-[16rem] max-w-[16rem] sticky left-12 z-10 border-r border-slate-300", stickyBg)}><code className="text-sm font-numeric font-semibold text-slate-900">{item.budgetHead}</code></td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 w-64 min-w-[16rem] max-w-[16rem] sticky left-12 z-10 shadow-[inset_-1px_0_0_0_#cbd5e1]", stickyBg)}><code className="text-sm font-numeric font-semibold text-slate-900">{item.budgetHead}</code></td>;
                                             case 'detailCodeNomenclature':
-                                                return <td key={colKey} className={cn("px-2 py-2 w-44 min-w-[11rem] max-w-[11rem] sticky left-[19rem] z-10 text-sm font-medium text-slate-700 border-r border-slate-300", stickyBg)}><div className="whitespace-normal break-words" title={DETAIL_HEAD_NOMENCLATURE[item.detailHead] || item.schemeNomenclature || item.detailHead}>{DETAIL_HEAD_NOMENCLATURE[item.detailHead] || item.schemeNomenclature || item.detailHead}</div></td>;
+                                                return <td key={colKey} className={cn("px-2 py-2 w-44 min-w-[11rem] max-w-[11rem] sticky left-[19rem] z-10 text-sm font-medium text-slate-700 shadow-[inset_-1px_0_0_0_#cbd5e1,2px_0_5px_-2px_rgba(0,0,0,0.05)]", stickyBg)}><div className="whitespace-normal break-words" title={DETAIL_HEAD_NOMENCLATURE[item.detailHead] || item.schemeNomenclature || item.detailHead}>{DETAIL_HEAD_NOMENCLATURE[item.detailHead] || item.schemeNomenclature || item.detailHead}</div></td>;
                                             case 'objectCodeNomenclature':
                                                 return <td key={colKey} className={cn("px-2 py-2 text-sm font-medium text-slate-700 border-r border-slate-200", columnColors[colKey])}>{OBJECT_HEAD_NOMENCLATURE[item.objectHead] || item.objectHead}</td>;
                                             // Budget head component columns
@@ -828,6 +832,39 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                                 return <td key={colKey} className="px-1 py-1 bg-blue-50/50 border-r border-slate-200"><Input type="number" value={data.forwardEstimateY3 ? data.forwardEstimateY3 / 1000 : ''} onChange={(e) => updateFormData(item.id, 'forwardEstimateY3', (parseFloat(e.target.value) || 0) * 1000)} disabled={isSubmitted} className="h-8 text-sm font-numeric border-blue-200 focus:border-blue-400 bg-white text-right" placeholder="0" /></td>;
                                             case 'remarks':
                                                 return <td key={colKey} className="px-1 py-1 bg-blue-50/50 border-r border-slate-200"><Input type="text" value={data.remarks || ''} onChange={(e) => updateFormData(item.id, 'remarks', e.target.value)} disabled={isSubmitted} className="h-8 text-sm border-blue-200 focus:border-blue-400 bg-white" placeholder="Remarks..." /></td>;
+                                            case 'markFilled': {
+                                                const isFilled = markedFilled.has(item.id);
+                                                return (
+                                                    <td key={colKey} className="px-2 py-1 text-center border-r border-slate-200">
+                                                        <button
+                                                            onClick={() => {
+                                                                setMarkedFilled(prev => {
+                                                                    const next = new Set(prev);
+                                                                    if (next.has(item.id)) {
+                                                                        next.delete(item.id);
+                                                                    } else {
+                                                                        next.add(item.id);
+                                                                    }
+                                                                    return next;
+                                                                });
+                                                            }}
+                                                            className={cn(
+                                                                "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition-all duration-200 border",
+                                                                isFilled
+                                                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 shadow-sm"
+                                                                    : "bg-slate-50 text-slate-500 border-slate-200 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200"
+                                                            )}
+                                                            title={isFilled ? 'Click to mark as unfilled' : 'Click to mark as filled'}
+                                                        >
+                                                            {isFilled ? (
+                                                                <><CircleCheck size={14} className="text-emerald-600" /> Done</>
+                                                            ) : (
+                                                                <><Circle size={14} className="text-slate-400" /> Pending</>
+                                                            )}
+                                                        </button>
+                                                    </td>
+                                                );
+                                            }
                                             default:
                                                 return null;
                                         }
@@ -875,11 +912,10 @@ export function TableBudgetGrid({ role, items, estimations, viewToggle, schemes,
                                             <td
                                                 key={col.key}
                                                 className={cn(
-                                                    "px-2 py-3 text-xs font-bold text-slate-800 bg-slate-100 border-r",
-                                                    isFirstSticky && "sticky left-0 z-30 border-slate-300",
-                                                    isSecondSticky && "sticky left-12 z-30 border-slate-300",
-                                                    isThirdSticky && "sticky left-[19rem] z-30 border-slate-300 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]",
-                                                    !isFirstSticky && !isSecondSticky && !isThirdSticky && "border-slate-200",
+                                                    "px-2 py-3 text-xs font-bold text-slate-800 bg-slate-100 border-r border-slate-200",
+                                                    isFirstSticky && "sticky left-0 z-30 shadow-[inset_-1px_0_0_0_#cbd5e1]",
+                                                    isSecondSticky && "sticky left-12 z-30 shadow-[inset_-1px_0_0_0_#cbd5e1]",
+                                                    isThirdSticky && "sticky left-[19rem] z-30 shadow-[inset_-1px_0_0_0_#cbd5e1,2px_0_5px_-2px_rgba(0,0,0,0.05)]",
                                                     isNumeric && "text-right font-numeric",
                                                     columnColor && columnColor.replace('-50', '-100')
                                                 )}
